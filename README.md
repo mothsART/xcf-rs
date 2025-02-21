@@ -14,6 +14,15 @@ support for a lot of features (I only needed to pluck pixel data from a few laye
 
 Contributions welcome.
 
+# Documentation
+
+https://testing.developer.gimp.org/core/standards/xcf/
+
+# Use of
+
+hachoir : https://hachoir.readthedocs.io/
+hexdump
+
 # Example
 
 ```rust

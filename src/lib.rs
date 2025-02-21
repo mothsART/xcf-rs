@@ -118,9 +118,9 @@ impl XcfHeader {
         }
 
         let version = Version::parse(&mut rdr)?;
-        if version.num() > 11 {
+        /*if version.num() > 11 {
             return Err(Error::UnknownVersion);
-        }
+        }*/
 
         rdr.read_exact(&mut [0u8])?;
 
@@ -129,9 +129,11 @@ impl XcfHeader {
 
         let color_type = ColorType::new(rdr.read_u32::<BigEndian>()?)?;
 
+        /*
         if color_type != ColorType::Rgb {
             unimplemented!("Only RGB/RGBA color images supported");
         }
+        */
 
         let precision = if version.num() >= 4 {
             Precision::parse(&mut rdr, version)?
@@ -170,7 +172,7 @@ impl Version {
         }
     }
 
-    fn num(self) -> u16 {
+    pub fn num(self) -> u16 {
         self.0
     }
 
@@ -378,6 +380,10 @@ prop_ident_gen! {
         PropParasites = 21,
         PropUnit = 22,
         PropPaths = 23,
+        PropUserUnit = 24,
+        PropVectors = 25,
+        PropTextLayerFlags = 26,
+        PropOldSamplePoints = 27,
         PropLockContent = 28,
         PropLockPosition = 32,
         PropFloatOpacity = 33,
@@ -385,6 +391,15 @@ prop_ident_gen! {
         PropCompositeMode = 35,
         PropCompositeSpace = 36,
         PropBlendSpace = 37,
+        PropFloatColor = 38,
+        PropSamplePoints = 39,
+        PropItemSet = 40,
+        PropItemSetItem = 41,
+        PropLockVisibility = 42,
+        PropSelectedPath = 43,
+        PropFilterRegion = 44,
+        PropFilterArgument = 45,
+        PropFilterClip = 46,
     }
 }
 
@@ -494,9 +509,11 @@ impl PixelData {
         let width = rdr.read_u32::<BigEndian>()?;
         let height = rdr.read_u32::<BigEndian>()?;
         let bpp = rdr.read_u32::<BigEndian>()?;
+        /*
         if bpp != 3 && bpp != 4 {
             return Err(Error::NotSupported);
         }
+        */
         let lptr = rdr.read_uint::<BigEndian>(version.bytes_per_offset())?;
         let _dummpy_ptr_pos = rdr.stream_position()?;
         rdr.seek(SeekFrom::Start(lptr))?;
