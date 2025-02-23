@@ -502,10 +502,10 @@ pub struct PixelData {
 }
 
 impl PixelData {
-    /// Parses the (silly?) heirarchy structure in the xcf file into a pixel array
+    /// Parses the (silly?) hierarchy structure in the xcf file into a pixel array
     /// Makes lots of assumptions! Only supports RGBA for now.
     fn parse_hierarchy<R: Read + Seek>(mut rdr: R, version: Version) -> Result<PixelData, Error> {
-        // read the heirarchy
+        // read the hierarchy
         let width = rdr.read_u32::<BigEndian>()?;
         let height = rdr.read_u32::<BigEndian>()?;
         let bpp = rdr.read_u32::<BigEndian>()?;

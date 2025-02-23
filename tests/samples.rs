@@ -94,28 +94,89 @@ fn write_xcf() -> Result<(), Error> {
     use std::io::Write;
     use byteorder::{BigEndian, ByteOrder};
 
-    fn extend_u32(value: u32, data: &mut Vec<u8>) {
+    fn create_signature(gimp_version: u32, data: &mut Vec<u8>, index: &mut u32) {
+        let mut signature = format!("gimp xcf v{:03}\0", gimp_version);
+        if gimp_version == 1 {
+            signature = format!("gimp xcf file\0");
+        }
+        data.extend_from_slice(signature.as_bytes());
+        *index += 14;
+    }
+
+    fn extend_u32(value: u32, data: &mut Vec<u8>, index: &mut u32) {
         let mut width_buf = vec![0; 4];
         BigEndian::write_u32(&mut width_buf, value);
         data.extend_from_slice(&width_buf);
+        *index += 4;
+    }
+
+    fn prop_end(data: &mut Vec<u8>, index: &mut u32) {
+        extend_u32(0, data, index); // prop : End
+        extend_u32(0, data, index); // size : 0
+    }
+
+    // Gimp_String is describe here : https://testing.developer.gimp.org/core/standards/xcf/#basic-data-types
+    fn gimp_string(str: &[u8], data: &mut Vec<u8>, index: &mut u32) {
+        let str_count = str.iter().count() as u32;
+        extend_u32(str_count + 4, data, index);
+        data.extend_from_slice(str);
+        *index += str_count;
+        extend_u32(0, data, index);
     }
 
     let mut file = File::create("tests/samples/try.xcf")?;
-    let mut data = "gimp xcf v011\0".as_bytes().to_vec();
+    let mut data = vec!();
+    let mut index = 0;
+    create_signature(11, &mut data, &mut index);
 
-    extend_u32(1, &mut data); // width = 1
-    extend_u32(1, &mut data); // height = 1
-    extend_u32(0, &mut data); // 0 = RGB TODO : créer un enum
+    extend_u32(1, &mut data, &mut index); // width = 1
+    extend_u32(1, &mut data, &mut index); // height = 1
+    extend_u32(0, &mut data, &mut index); // 0 = RGB TODO : créer un enum
 
-    extend_u32(17, &mut data); // prop : Compression
-    extend_u32(1, &mut data); // size compression prop
+    extend_u32(17, &mut data, &mut index); // prop : Compression
+    extend_u32(1, &mut data, &mut index); // size compression prop
     data.extend_from_slice(&[0]); // compression value = None
+    index += 1;
 
-    extend_u32(0, &mut data); // prop : End
-    extend_u32(0, &mut data); // size : 0
+    prop_end(&mut data, &mut index);
 
-    extend_u32(0, &mut data); // layer_offset[] = 0 => fin
-    extend_u32(0, &mut data); // channel_offset[] = 0 => fin
+    let mut intermediate_buf = vec!();
+    extend_u32(0, &mut intermediate_buf, &mut index); // layer_offset[n] : 0 = end
+    extend_u32(0, &mut intermediate_buf, &mut index); // channel_offset[] = 0 => end
+
+    let mut layer_one_offset_buf = vec!();
+    extend_u32(index + 4, &mut layer_one_offset_buf, &mut index); // layer_offset[0] = le pointer du calque
+    layer_one_offset_buf.extend_from_slice(&intermediate_buf);
+    data.extend_from_slice(&layer_one_offset_buf);
+
+    extend_u32(1, &mut data, &mut index); // layer[0] : width=1
+    extend_u32(1, &mut data, &mut index); // layer[0] : height=1
+    extend_u32(0, &mut data, &mut index); // layer[0] : type=RGB
+
+    // layer name :
+    gimp_string(b"Background", &mut data, &mut index);
+
+    prop_end(&mut data, &mut index);
+
+    // hierarchy
+    extend_u32(index + 8, &mut data, &mut index); // hierarchy offset.
+    extend_u32(0, &mut data, &mut index); // mask offset
+
+    // https://testing.developer.gimp.org/core/standards/xcf/#the-hierarchy-structure
+    extend_u32(1, &mut data, &mut index); // width=1
+    extend_u32(1, &mut data, &mut index); // height=1
+    extend_u32(3, &mut data, &mut index); // bpp=3 : RGB color without alpha in 8-bit precision
+    extend_u32(index + 8, &mut data, &mut index); // offset[0]
+    extend_u32(0, &mut data, &mut index); // offset[n] = 0 => end
+
+    extend_u32(1, &mut data, &mut index); // level[0] width =1
+    extend_u32(1, &mut data, &mut index); // level[0] height =1
+    extend_u32(index + 8, &mut data, &mut index); // offset= le pointer du contenu
+    extend_u32(0, &mut data, &mut index); // data_offset[0] = 0 => end
+
+    //extend_u32(1234, &mut data, &mut index);
+    let slice = [00, 158, 00, 36, 00, 222];
+    data.extend_from_slice(&slice);
 
     for d in &data {
         print!("{:02x} ", d);
