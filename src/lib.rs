@@ -326,8 +326,10 @@ impl Property {
 
 macro_rules! prop_ident_gen {
     (
+        #[derive(Debug, Clone, Copy, PartialEq)]
+        #[repr(u32)]
         pub enum PropertyIdentifier {
-            Unknown(u32),
+            //Unknown(u32),
             $(
                 $prop:ident = $val:expr
             ),+,
@@ -342,7 +344,7 @@ macro_rules! prop_ident_gen {
             // we have to put this at the end, since otherwise it will try to have value zero,
             // we really don't care what it is as long as it doesn't conflict with anything else
             // (however in the macro we have to put it first since it's a parsing issue)
-            Unknown(u32),
+            //Unknown(u32),
         }
 
         impl PropertyIdentifier {
@@ -351,7 +353,8 @@ macro_rules! prop_ident_gen {
                     $(
                         $val => PropertyIdentifier::$prop
                     ),+,
-                    _ => PropertyIdentifier::Unknown(prop),
+                    _ => todo!()
+                    //_ => PropertyIdentifier::Unknown(prop),
                 }
             }
         }
@@ -359,11 +362,15 @@ macro_rules! prop_ident_gen {
 }
 
 prop_ident_gen! {
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    #[repr(u32)]
     pub enum PropertyIdentifier {
-        Unknown(u32),
         PropEnd = 0,
         PropColormap = 1,
         PropActiveLayer = 2,
+        PropActiveChannel = 3,
+        PropSelection = 4,
+        PropFloatingSelection = 5,
         PropOpacity = 6,
         PropMode = 7,
         PropVisible = 8,
@@ -672,6 +679,10 @@ impl TileCursor {
 pub struct RgbaPixel(pub [u8; 4]);
 
 impl RgbaPixel {
+    pub fn new(red: u8, green: u8, blue: u8, alpha: u8) -> Self {
+        RgbaPixel([red, green, blue, alpha])
+    }
+
     pub fn r(&self) -> u8 {
         self.0[0]
     }
@@ -686,6 +697,10 @@ impl RgbaPixel {
 
     pub fn a(&self) -> u8 {
         self.0[3]
+    }
+
+    pub fn to_u32(&self) -> u32 {
+        self.r() as u32 + self.g() as u32 + self.b() as u32 + self.a() as u32
     }
 }
 

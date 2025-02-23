@@ -1,4 +1,4 @@
-use xcf::{Error, Xcf};
+use xcf::{ColorType, PropertyIdentifier, RgbaPixel, Error, Xcf};
 
 #[test]
 fn read_1x1_violet_legacy() -> Result<(), Error> {
@@ -127,13 +127,13 @@ fn write_xcf() -> Result<(), Error> {
     let mut file = File::create("tests/samples/try.xcf")?;
     let mut data = vec!();
     let mut index = 0;
-    create_signature(11, &mut data, &mut index);
+    create_signature(1, &mut data, &mut index);
 
     extend_u32(1, &mut data, &mut index); // width = 1
     extend_u32(1, &mut data, &mut index); // height = 1
-    extend_u32(0, &mut data, &mut index); // 0 = RGB TODO : créer un enum
+    extend_u32(ColorType::Rgb as u32, &mut data, &mut index); // 0 = RGB TODO : créer un enum
 
-    extend_u32(17, &mut data, &mut index); // prop : Compression
+    extend_u32(PropertyIdentifier::PropCompression as u32, &mut data, &mut index); // prop : Compression
     extend_u32(1, &mut data, &mut index); // size compression prop
     data.extend_from_slice(&[0]); // compression value = None
     index += 1;
@@ -156,6 +156,32 @@ fn write_xcf() -> Result<(), Error> {
     // layer name :
     gimp_string(b"Background", &mut data, &mut index);
 
+    extend_u32(PropertyIdentifier::PropActiveLayer as u32, &mut data, &mut index); // prop = 2 : active layer
+    extend_u32(0, &mut data, &mut index);
+
+    extend_u32(PropertyIdentifier::PropOpacity as u32, &mut data, &mut index); // prop : opacity
+    extend_u32(4, &mut data, &mut index); // prop opacity size
+    extend_u32(RgbaPixel::new(0, 0, 0, 255).to_u32(), &mut data, &mut index); // color of opacity = black
+
+    // TODO : à améliorer, ça doit être une valeur en float
+    extend_u32(PropertyIdentifier::PropFloatOpacity as u32, &mut data, &mut index); // prop : float opacity
+    extend_u32(4, &mut data, &mut index); // prop float opacity size
+    let float_slice = [63, 128, 0, 0];
+    data.extend_from_slice(&float_slice); // prop float opacity value
+    index += 4;
+
+    extend_u32(PropertyIdentifier::PropVisible as u32, &mut data, &mut index); // prop : visible
+    extend_u32(4, &mut data, &mut index); // prop visible size
+    let float_slice = [0, 0, 0, 1];
+    data.extend_from_slice(&float_slice); // prop visible value
+    index += 4;
+
+    extend_u32(PropertyIdentifier::PropLinked as u32, &mut data, &mut index); // prop : linked
+    extend_u32(4, &mut data, &mut index); // prop linked size
+    extend_u32(0, &mut data, &mut index); // prop linked value
+
+    //PropColorTag
+
     prop_end(&mut data, &mut index);
 
     // hierarchy
@@ -174,8 +200,8 @@ fn write_xcf() -> Result<(), Error> {
     extend_u32(index + 8, &mut data, &mut index); // offset= le pointer du contenu
     extend_u32(0, &mut data, &mut index); // data_offset[0] = 0 => end
 
-    //extend_u32(1234, &mut data, &mut index);
-    let slice = [00, 158, 00, 36, 00, 222];
+    //let slice = [00, 158, 00, 36, 00, 222];
+    let slice = [00, 00, 00, 36, 00, 222];
     data.extend_from_slice(&slice);
 
     for d in &data {
