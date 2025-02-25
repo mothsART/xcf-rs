@@ -1,4 +1,4 @@
-use xcf::{ColorType, PropertyIdentifier, RgbaPixel, Error, Xcf};
+use xcf::{ColorType, PropertyIdentifier, data::{rgba::RgbaPixel, error::Error}, Xcf};
 
 #[test]
 fn read_1x1_violet_legacy() -> Result<(), Error> {
@@ -135,6 +135,7 @@ fn write_xcf() -> Result<(), Error> {
 
     extend_u32(PropertyIdentifier::PropCompression as u32, &mut data, &mut index); // prop : Compression
     extend_u32(1, &mut data, &mut index); // size compression prop
+    //data.extend_from_slice(&[1]); // compression value = RLE
     data.extend_from_slice(&[0]); // compression value = None
     index += 1;
 
@@ -162,6 +163,10 @@ fn write_xcf() -> Result<(), Error> {
     extend_u32(PropertyIdentifier::PropOpacity as u32, &mut data, &mut index); // prop : opacity
     extend_u32(4, &mut data, &mut index); // prop opacity size
     extend_u32(RgbaPixel::new(0, 0, 0, 255).to_u32(), &mut data, &mut index); // color of opacity = black
+
+    extend_u32(PropertyIdentifier::PropMode as u32, &mut data, &mut index); // prop : Mode
+    extend_u32(4, &mut data, &mut index); // prop mode size
+    extend_u32(0, &mut data, &mut index); // prop mode=normal
 
     // TODO : à améliorer, ça doit être une valeur en float
     extend_u32(PropertyIdentifier::PropFloatOpacity as u32, &mut data, &mut index); // prop : float opacity
@@ -200,8 +205,8 @@ fn write_xcf() -> Result<(), Error> {
     extend_u32(index + 8, &mut data, &mut index); // offset= le pointer du contenu
     extend_u32(0, &mut data, &mut index); // data_offset[0] = 0 => end
 
-    //let slice = [00, 158, 00, 36, 00, 222];
-    let slice = [00, 00, 00, 36, 00, 222];
+    //let slice = [00, 158, 00, 36, 00, 222]; // violet r: 158, g: 23, b: 222  with RLE compression
+    let slice = [158, 36, 222]; // violet r: 158, g: 23, b: 222  without compression
     data.extend_from_slice(&slice);
 
     for d in &data {
