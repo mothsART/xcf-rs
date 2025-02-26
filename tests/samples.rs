@@ -1,4 +1,4 @@
-use xcf::{ColorType, PropertyIdentifier, data::{rgba::RgbaPixel, error::Error}, Xcf};
+use xcf::data::{property::PropertyIdentifier, rgba::RgbaPixel, color::ColorType, error::Error, xcf::Xcf};
 
 #[test]
 fn read_1x1_violet_legacy() -> Result<(), Error> {

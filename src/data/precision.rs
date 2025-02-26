@@ -1,0 +1,21 @@
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Precision {
+    LinearU8,
+    NonLinearU8,
+    PerceptualU8,
+    LinearU16,
+    NonLinearU16,
+    PerceptualU16,
+    LinearU32,
+    NonLinearU32,
+    PerceptualU32,
+    LinearF16,
+    NonLinearF16,
+    PerceptualF16,
+    LinearF32,
+    NonLinearF32,
+    PerceptualF32,
+    LinearF64,
+    NonLinearF64,
+    PerceptualF64,
+}

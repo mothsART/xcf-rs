@@ -1,4 +1,4 @@
-use crate::data::rgba::RgbaPixel;
+use crate::RgbaPixel;
 
 // TODO: Make this an enum? We should store a buffer that matches the channels present.
 #[derive(Clone, Debug, PartialEq)]
