@@ -1,4 +1,8 @@
+use std::fs::File;
+use std::io::Write;
+
 use xcf::data::{property::PropertyIdentifier, rgba::RgbaPixel, color::ColorType, error::Error, xcf::Xcf};
+use xcf::create::XcfCreator;
 
 #[test]
 fn read_1x1_violet_legacy() -> Result<(), Error> {
@@ -89,9 +93,17 @@ fn mini() -> Result<(), Error> {
 }
 
 #[test]
+fn write_minimal() -> Result<(), Error> {
+    let mut minimal_xcf = File::create("tests/samples/minimal.xcf")?;
+    let mut xcf = XcfCreator::new(1, 1, 1, ColorType::Rgb);
+    xcf.add_properties();
+    xcf.add_layers();
+    minimal_xcf.write_all(xcf.data.as_slice())?;
+    Ok(())
+}
+
+#[test]
 fn write_xcf() -> Result<(), Error> {
-    use std::fs::File;
-    use std::io::Write;
     use byteorder::{BigEndian, ByteOrder};
 
     fn create_signature(gimp_version: u32, data: &mut Vec<u8>, index: &mut u32) {
@@ -140,6 +152,7 @@ fn write_xcf() -> Result<(), Error> {
     index += 1;
 
     prop_end(&mut data, &mut index);
+    println!("sample : {:?}", index);
 
     let mut intermediate_buf = vec!();
     extend_u32(0, &mut intermediate_buf, &mut index); // layer_offset[n] : 0 = end
@@ -209,9 +222,11 @@ fn write_xcf() -> Result<(), Error> {
     let slice = [158, 36, 222]; // violet r: 158, g: 23, b: 222  without compression
     data.extend_from_slice(&slice);
 
+    /*
     for d in &data {
         print!("{:02x} ", d);
     }
+    */
     file.write_all(data.as_slice())?;
     Ok(())
 }
