@@ -55,7 +55,9 @@ impl XcfCreator {
         _self.extend_u32(height);
         _self.extend_u32(color_type as u32);
 
-        _self.extend_u32(150);
+        if version >= 4 {
+            _self.extend_u32(150);
+        }
 
         _self
     }
