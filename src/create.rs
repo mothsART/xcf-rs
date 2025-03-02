@@ -55,6 +55,8 @@ impl XcfCreator {
         _self.extend_u32(height);
         _self.extend_u32(color_type as u32);
 
+        _self.extend_u32(150);
+
         _self
     }
 
@@ -79,7 +81,6 @@ impl XcfCreator {
         self.buf_extend_u32(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // layer_offset[n] : 0 = end
         self.buf_extend_u32(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // channel_offset[] = 0 => end
         self.index += layer_offset_zero_index;
-        println!(">>>> {} <---> {}", self.index, layer_offset_zero_index);
 
         let mut layer_offset_one_buf = vec!();
         let mut layer_offset_one_index = 0;
@@ -87,7 +88,6 @@ impl XcfCreator {
         layer_offset_one_buf.extend_from_slice(&intermediate_buf);
         self.data.extend_from_slice(&layer_offset_one_buf);
         self.index += layer_offset_one_index;
-        println!(">>>> {} <---> {}", self.index, layer_offset_one_index);
     
         self.extend_u32(1); // layer[0] : width=1
         self.extend_u32(1); // layer[0] : height=1
