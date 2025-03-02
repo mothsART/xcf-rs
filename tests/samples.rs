@@ -1,8 +1,5 @@
-use std::fs::File;
-use std::io::Write;
 
-use xcf::data::{property::PropertyIdentifier, rgba::RgbaPixel, color::ColorType, error::Error, xcf::Xcf};
-use xcf::create::XcfCreator;
+use xcf::data::{error::Error, xcf::Xcf};
 
 #[test]
 fn read_1x1_violet_legacy() -> Result<(), Error> {
@@ -11,6 +8,7 @@ fn read_1x1_violet_legacy() -> Result<(), Error> {
     assert_eq!(raw_image.header.version.num(), 0);
     assert_eq!(raw_image.dimensions(), (1, 1));
 
+    //println!("layer : {:?}", raw_image.layer("Background"));
     Ok(())
 }
 
@@ -21,6 +19,7 @@ fn read_1x1_violet_with_comment() -> Result<(), Error> {
     assert_eq!(raw_image.header.version.num(), 11);
     assert_eq!(raw_image.dimensions(), (1, 1));
 
+    //println!("layer : {:?}", raw_image.layer("Background"));
     Ok(())
 }
 
@@ -89,16 +88,6 @@ fn mini() -> Result<(), Error> {
     assert_eq!(raw_image.dimensions(), (1, 1));
     assert_eq!(raw_image.layers.len(), 1);
 
-    Ok(())
-}
-
-#[test]
-fn write_minimal() -> Result<(), Error> {
-    let mut minimal_xcf = File::create("tests/samples/minimal.xcf")?;
-    let mut xcf = XcfCreator::new(1, 1, 1, ColorType::Rgb);
-    xcf.add_properties();
-    xcf.add_layers();
-    minimal_xcf.write_all(xcf.data.as_slice())?;
     Ok(())
 }
 

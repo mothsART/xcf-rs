@@ -5,6 +5,7 @@ use crate::PropertyIdentifier;
 use crate::RgbaPixel;
 
 pub struct XcfCreator {
+    pub version: u16,
     pub data: Vec<u8>,
     pub index: u32,
 }
@@ -19,10 +20,19 @@ impl XcfCreator {
     }
 
     fn buf_extend_u32(&mut self, data: &mut Vec<u8>, index: &mut u32, value: u32) {
-        let mut width_buf = vec![0; 4];
+        let size = 4;
+        let mut width_buf = vec![0; size];
         BigEndian::write_u32(&mut width_buf, value);
         data.extend_from_slice(&width_buf);
-        *index += 4;
+        *index += size as u32;
+    }
+
+    fn buf_extend_u64(&mut self, data: &mut Vec<u8>, index: &mut u32, value: u64) {
+        let size = 8;
+        let mut width_buf = vec![0; size];
+        BigEndian::write_u64(&mut width_buf, value);
+        data.extend_from_slice(&width_buf);
+        *index += size as u32;
     }
 
     fn create_signature(&mut self, gimp_version: u16) {
@@ -47,6 +57,7 @@ impl XcfCreator {
         let index = 0;
 
         let mut _self = XcfCreator {
+            version,
             data,
             index
         };
@@ -86,7 +97,12 @@ impl XcfCreator {
 
         let mut layer_offset_one_buf = vec!();
         let mut layer_offset_one_index = 0;
-        self.buf_extend_u32( &mut layer_offset_one_buf, &mut layer_offset_one_index, self.index + 4); // layer_offset[0] = le pointer du calque
+        if self.version >= 11 {
+            self.buf_extend_u64( &mut layer_offset_one_buf, &mut layer_offset_one_index, self.index as u64 + 8); // layer_offset[0] = le pointer du calque
+        }
+        else {
+            self.buf_extend_u32( &mut layer_offset_one_buf, &mut layer_offset_one_index, self.index + 4); // layer_offset[0] = le pointer du calque
+        }
         layer_offset_one_buf.extend_from_slice(&intermediate_buf);
         self.data.extend_from_slice(&layer_offset_one_buf);
         self.index += layer_offset_one_index;
