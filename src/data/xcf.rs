@@ -1,5 +1,19 @@
 use crate::{XcfHeader, Layer};
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum XcfCompression {
+    None = 0,
+    Rle = 1,
+    Zlib = 2,
+    Fractal = 3
+}
+
+impl XcfCompression {
+    pub fn to_u8(&self) -> u8 {
+        self.clone() as u8
+    }
+}
+
 #[derive(Debug)]
 pub struct Xcf {
     pub header: XcfHeader,

@@ -1,7 +1,10 @@
+use crate::data::xcf::XcfCompression;
+
 #[derive(Debug, PartialEq)]
 pub enum PropertyPayload {
     ColorMap { colors: usize },
     End,
+    Compression(XcfCompression),
     Unknown(Vec<u8>),
 }
 

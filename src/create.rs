@@ -1,6 +1,9 @@
 use byteorder::{BigEndian, ByteOrder};
 
 use crate::data::color::ColorType;
+use crate::data::property::Property;
+use crate::data::property::PropertyPayload;
+use crate::data::xcf::XcfCompression;
 use crate::PropertyIdentifier;
 use crate::RgbaPixel;
 
@@ -78,11 +81,18 @@ impl XcfCreator {
         self.extend_u32(0); // size : 0
     }
 
-    pub fn add_properties(&mut self) {
-        self.extend_u32(PropertyIdentifier::PropCompression as u32); // prop : Compression
-        self.extend_u32(1); // size compression prop
-        self.data.extend_from_slice(&[0]); // compression value = None
-        self.index += 1;
+    pub fn add_properties(&mut self, properties: &Vec<Property>) {
+        for property in properties {
+            self.extend_u32(property.kind as u32);
+            self.extend_u32(property.length as u32); // size
+            match &property.payload {
+                PropertyPayload::Compression(_value) => {
+                    self.data.extend_from_slice(&[_value.to_u8()]);
+                },
+                _ => {}
+            }
+            self.index += 1;
+        }
 
         self.prop_end();
     }
@@ -91,8 +101,14 @@ impl XcfCreator {
         let mut intermediate_buf = vec!();
         let mut layer_offset_zero_index = 0;
 
-        self.buf_extend_u32(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // layer_offset[n] : 0 = end
-        self.buf_extend_u32(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // channel_offset[] = 0 => end
+        if self.version >= 11 {
+            self.buf_extend_u64( &mut intermediate_buf, &mut layer_offset_zero_index, 0); // layer_offset[n] : 0 = end
+            self.buf_extend_u64(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // channel_offset[] = 0 => end
+        }
+        else {
+            self.buf_extend_u32(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // layer_offset[n] : 0 = end
+            self.buf_extend_u32(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // channel_offset[] = 0 => end
+        }
         self.index += layer_offset_zero_index;
 
         let mut layer_offset_one_buf = vec!();

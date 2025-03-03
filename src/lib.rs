@@ -293,7 +293,6 @@ fn read_gimp_string<R: Read>(mut rdr: R) -> Result<String, Error> {
     Ok(String::from_utf8(buffer)?)
 }
 
-
 /// A GIMP XCF file.
 ///
 /// If you need to access multiple layers at once, access layers field and use `split_at`.
