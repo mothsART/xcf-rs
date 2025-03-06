@@ -57,6 +57,20 @@ fn write_minimal_xcf10() -> Result<(), Error> {
 }
 
 #[test]
+fn write_minimal_xcf11() -> Result<(), Error> {
+    let path = "tests/samples/minimal_xcf11.xcf";
+    let mut minimal_xcf = File::create(path)?;
+    let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
+    let properties = vec!();
+    xcf.add_properties(&properties);
+    xcf.add_layers();
+    minimal_xcf.write_all(xcf.data.as_slice())?;
+
+    assert_hash(path, "75c58daad76a798d321940468eeda9fd8bca4279");
+    Ok(())
+}
+
+#[test]
 fn write_minimal() -> Result<(), Error> {
     let mut minimal_xcf = File::create("tests/samples/minimal.xcf")?;
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);

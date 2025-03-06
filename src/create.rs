@@ -22,6 +22,13 @@ impl XcfCreator {
         self.index += 4;
     }
 
+    fn extend_u64(&mut self, value: u64) {
+        let mut width_buf = vec![0; 8];
+        BigEndian::write_u64(&mut width_buf, value);
+        self.data.extend_from_slice(&width_buf);
+        self.index += 8;
+    }
+
     fn buf_extend_u32(&mut self, data: &mut Vec<u8>, index: &mut u32, value: u32) {
         let size = 4;
         let mut width_buf = vec![0; size];
@@ -161,24 +168,56 @@ impl XcfCreator {
         self.prop_end();
 
 
-        // hierarchy
-        self.extend_u32(self.index + 8); // hierarchy offset.
-        self.extend_u32(0); // mask offset
+        // hierarchy offset
+        if self.version >= 11 {
+            self.extend_u64(self.index as u64 + 16);
+            self.extend_u64(0); // mask offset
+        } else {
+            self.extend_u32(self.index + 8);
+            self.extend_u32(0); // mask offset
+        }
 
         // https://testing.developer.gimp.org/core/standards/xcf/#the-hierarchy-structure
         self.extend_u32(1); // width=1
         self.extend_u32(1); // height=1
         self.extend_u32(3); // bpp=3 : RGB color without alpha in 8-bit precision
-        self.extend_u32(self.index + 8); // offset[0]
-        self.extend_u32(0); // offset[n] = 0 => end
+        if self.version >= 11 {
+            self.extend_u64(self.index as u64 + 16); // offset[0]
+            self.extend_u64(0);
 
-        self.extend_u32(1); // level[0] width =1
-        self.extend_u32(1); // level[0] height =1
-        self.extend_u32(self.index + 8); // offset= le pointer du contenu
-        self.extend_u32(0); // data_offset[0] = 0 => end
+            self.extend_u32(1); // level[0] width =1
+            self.extend_u32(1); // level[0] height =1
 
-        //let slice = [00, 158, 00, 36, 00, 222]; // violet r: 158, g: 23, b: 222  with RLE compression
-        let slice = [158, 36, 222]; // violet r: 158, g: 23, b: 222  without compression
-        self.data.extend_from_slice(&slice);
+            self.extend_u32(0);
+
+            /*
+            self.extend_u32(self.index + 8); // offset
+            self.extend_u32(0);
+
+            self.extend_u32(0); // data_offset[0] = 0 => end
+            */
+
+            //let slice = [00, 158, 00, 36, 00, 222]; // violet r: 158, g: 23, b: 222  with RLE compression
+            let slice = [0, 0, 02, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 158]; // violet r: 158, g: 23, b: 222  without compression
+
+            // \0\0\2\xa4\0\0\0\0\0\0\0\0\0\x9e
+            self.data.extend_from_slice(&slice);
+        } else {
+            self.extend_u32(self.index + 8); // offset[0]
+
+            self.extend_u32(0); // offset[n] = 0 => end
+
+            self.extend_u32(1); // level[0] width =1
+            self.extend_u32(1); // level[0] height =1
+            self.extend_u32(self.index + 8); // offset= le pointer du contenu
+    
+            self.extend_u32(0); // data_offset[0] = 0 => end
+
+            //let slice = [00, 158, 00, 36, 00, 222]; // violet r: 158, g: 23, b: 222  with RLE compression
+            let slice = [158, 36, 222]; // violet r: 158, g: 23, b: 222  without compression
+
+            // \0\0\2\xa4\0\0\0\0\0\0\0\0\0\x9e
+            self.data.extend_from_slice(&slice);
+        }
     }
 }
