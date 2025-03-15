@@ -1,10 +1,21 @@
+use std::io::Read;
+use byteorder::{BigEndian, ReadBytesExt};
+
+use crate::data::error::Error;
 use crate::data::xcf::XcfCompression;
+
+#[derive(Debug, PartialEq)]
+pub struct ResolutionProperty {
+    pub xres: f32,
+    pub yres: f32,
+}
 
 #[derive(Debug, PartialEq)]
 pub enum PropertyPayload {
     ColorMap { colors: usize },
     End,
     Compression(XcfCompression),
+    ResolutionProperty(ResolutionProperty),
     Unknown(Vec<u8>),
 }
 
@@ -13,6 +24,45 @@ pub struct Property {
     pub kind: PropertyIdentifier,
     pub length: usize,
     pub payload: PropertyPayload,
+}
+
+impl Property {
+    // TODO: GIMP usually calculates sizes based on data and goes from that instead of the reported
+    // property length... (for known properties)
+    fn guess_size(&self) -> usize {
+        match self.payload {
+            PropertyPayload::ColorMap { colors, .. } => {
+                /* apparently due to a GIMP bug sometimes self.length will be n + 4 */
+                3 * colors + 4
+            }
+            // this is the best we can do otherwise
+            _ => self.length,
+        }
+    }
+
+    fn parse<R: Read>(mut rdr: R) -> Result<Property, Error> {
+        let kind = PropertyIdentifier::new(rdr.read_u32::<BigEndian>()?);
+        let length = rdr.read_u32::<BigEndian>()? as usize;
+        let payload = PropertyPayload::parse(&mut rdr, kind, length)?;
+        Ok(Property {
+            kind,
+            length,
+            payload,
+        })
+    }
+
+    pub fn parse_list<R: Read>(mut rdr: R) -> Result<Vec<Property>, Error> {
+        let mut props = Vec::new();
+        loop {
+            let p = Property::parse(&mut rdr)?;
+            if let PropertyIdentifier::PropEnd = p.kind {
+                break;
+            }
+            // only push non end
+            props.push(p);
+        }
+        Ok(props)
+    }
 }
 
 macro_rules! prop_ident_gen {

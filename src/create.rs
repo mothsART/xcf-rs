@@ -3,7 +3,6 @@ use byteorder::{BigEndian, ByteOrder};
 use crate::data::color::ColorType;
 use crate::data::property::Property;
 use crate::data::property::PropertyPayload;
-use crate::data::xcf::XcfCompression;
 use crate::PropertyIdentifier;
 use crate::RgbaPixel;
 
@@ -77,15 +76,14 @@ impl XcfCreator {
         _self.extend_u32(color_type as u32);
 
         if version >= 4 {
-            _self.extend_u32(150);
+            _self.extend_u32(150); // 8-bit gamma integer
         }
 
         _self
     }
 
     fn prop_end(&mut self) {
-        self.extend_u32(0); // prop : End
-        self.extend_u32(0); // size : 0
+        self.extend_u64(0); // prop : End + size : 0
     }
 
     pub fn add_properties(&mut self, properties: &Vec<Property>) {
@@ -95,6 +93,10 @@ impl XcfCreator {
             match &property.payload {
                 PropertyPayload::Compression(_value) => {
                     self.data.extend_from_slice(&[_value.to_u8()]);
+                },
+                PropertyPayload::ResolutionProperty(_value) => {
+                    self.extend_u32(_value.xres.to_bits());
+                    self.extend_u32(_value.yres.to_bits());
                 },
                 _ => {}
             }
@@ -188,7 +190,7 @@ impl XcfCreator {
             self.extend_u32(1); // level[0] width =1
             self.extend_u32(1); // level[0] height =1
 
-            self.extend_u32(0);
+            self.extend_u32(0); // ptr : Pointer to tile data
 
             /*
             self.extend_u32(self.index + 8); // offset
@@ -198,8 +200,8 @@ impl XcfCreator {
             */
 
             //let slice = [00, 158, 00, 36, 00, 222]; // violet r: 158, g: 23, b: 222  with RLE compression
-            let slice = [0, 0, 02, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 158]; // violet r: 158, g: 23, b: 222  without compression
-
+            let slice = [0, 0, 02, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36]; // violet r: 158, g: 36, b: 222  without compression
+            //let slice = [255, 0, 0, 0, 0, 0, 0, 0, 0, 0];
             // \0\0\2\xa4\0\0\0\0\0\0\0\0\0\x9e
             self.data.extend_from_slice(&slice);
         } else {
@@ -214,7 +216,7 @@ impl XcfCreator {
             self.extend_u32(0); // data_offset[0] = 0 => end
 
             //let slice = [00, 158, 00, 36, 00, 222]; // violet r: 158, g: 23, b: 222  with RLE compression
-            let slice = [158, 36, 222]; // violet r: 158, g: 23, b: 222  without compression
+            let slice = [158, 36, 222]; // violet r: 158, g: 36, b: 222  without compression
 
             // \0\0\2\xa4\0\0\0\0\0\0\0\0\0\x9e
             self.data.extend_from_slice(&slice);

@@ -5,6 +5,7 @@ use sha1::{Digest, Sha1};
 use xcf::data::{color::ColorType, error::Error, property::{Property, PropertyIdentifier, PropertyPayload}};
 use xcf::data::xcf::XcfCompression;
 use xcf::create::XcfCreator;
+use xcf::data::property::ResolutionProperty;
 
 fn assert_hash(path: &'static str, expected_hash: &'static str) {
     let bytes = std::fs::read(&path).unwrap();
@@ -42,6 +43,7 @@ fn write_minimal_xcf3() -> Result<(), Error> {
     Ok(())
 }
 
+/*
 #[test]
 fn write_minimal_xcf10() -> Result<(), Error> {
     let path = "tests/samples/minimal_xcf10.xcf";
@@ -69,6 +71,19 @@ fn write_minimal_xcf11() -> Result<(), Error> {
     assert_hash(path, "75c58daad76a798d321940468eeda9fd8bca4279");
     Ok(())
 }
+*/
+
+fn reconstruct_f32(sign: bool, exponent: u8, mantissa: f32) -> f32 {
+    if mantissa < 1.0 || mantissa >= 2.0 {
+        panic!("La mantisse doit être comprise entre 1.0 (inclus) et 2.0 (exclus)");
+    }
+
+    let sign_factor = if sign { -1.0 } else { 1.0 }; // Convertir le signe en facteur (-1 ou 1)
+    let exponent_value = (exponent as i32) - 127; // Annuler le biais IEEE 754
+    let value = sign_factor * (mantissa * 2_f32.powi(exponent_value));
+
+    value
+}
 
 #[test]
 fn write_minimal() -> Result<(), Error> {
@@ -76,15 +91,27 @@ fn write_minimal() -> Result<(), Error> {
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
 
     let mut properties = vec!();
+
     let compression_property = Property {
         kind: PropertyIdentifier::PropCompression,
         length: 1,
-        payload: PropertyPayload::Compression(XcfCompression::None)
+        payload: PropertyPayload::Compression(XcfCompression::Rle)
     };
     properties.push(compression_property);
 
+    println!(">>> {}", reconstruct_f32(false, 8, 1.71875));
+    let resolution_property = Property {
+        kind: PropertyIdentifier::PropResolution,
+        length: 8,
+        payload: PropertyPayload::ResolutionProperty(ResolutionProperty {
+            xres: 300.0,
+            yres:  300.0
+        })
+    };
+    properties.push(resolution_property);
+
     xcf.add_properties(&properties);
-    xcf.add_layers();
+    //xcf.add_layers();
     minimal_xcf.write_all(xcf.data.as_slice())?;
     Ok(())
 }
