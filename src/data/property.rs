@@ -11,11 +11,21 @@ pub struct ResolutionProperty {
 }
 
 #[derive(Debug, PartialEq)]
+pub struct ParasiteProperty {
+    pub name: String,
+    pub flags: u32,
+    pub data: String,
+}
+
+#[derive(Debug, PartialEq)]
 pub enum PropertyPayload {
     ColorMap { colors: usize },
     End,
     Compression(XcfCompression),
     ResolutionProperty(ResolutionProperty),
+    Tatoo(u32),
+    Unit(u32),
+    Parasites(Vec<ParasiteProperty>),
     Unknown(Vec<u8>),
 }
 

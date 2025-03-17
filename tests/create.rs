@@ -5,7 +5,7 @@ use sha1::{Digest, Sha1};
 use xcf::data::{color::ColorType, error::Error, property::{Property, PropertyIdentifier, PropertyPayload}};
 use xcf::data::xcf::XcfCompression;
 use xcf::create::XcfCreator;
-use xcf::data::property::ResolutionProperty;
+use xcf::data::property::{ResolutionProperty, ParasiteProperty};
 
 fn assert_hash(path: &'static str, expected_hash: &'static str) {
     let bytes = std::fs::read(&path).unwrap();
@@ -73,18 +73,6 @@ fn write_minimal_xcf11() -> Result<(), Error> {
 }
 */
 
-fn reconstruct_f32(sign: bool, exponent: u8, mantissa: f32) -> f32 {
-    if mantissa < 1.0 || mantissa >= 2.0 {
-        panic!("La mantisse doit être comprise entre 1.0 (inclus) et 2.0 (exclus)");
-    }
-
-    let sign_factor = if sign { -1.0 } else { 1.0 }; // Convertir le signe en facteur (-1 ou 1)
-    let exponent_value = (exponent as i32) - 127; // Annuler le biais IEEE 754
-    let value = sign_factor * (mantissa * 2_f32.powi(exponent_value));
-
-    value
-}
-
 #[test]
 fn write_minimal() -> Result<(), Error> {
     let mut minimal_xcf = File::create("tests/samples/minimal.xcf")?;
@@ -99,7 +87,6 @@ fn write_minimal() -> Result<(), Error> {
     };
     properties.push(compression_property);
 
-    println!(">>> {}", reconstruct_f32(false, 8, 1.71875));
     let resolution_property = Property {
         kind: PropertyIdentifier::PropResolution,
         length: 8,
@@ -110,8 +97,41 @@ fn write_minimal() -> Result<(), Error> {
     };
     properties.push(resolution_property);
 
+    let tattoo_property = Property {
+        kind: PropertyIdentifier::PropTattoo,
+        length: 4,
+        payload: PropertyPayload::Tatoo(2)
+    };
+    properties.push(tattoo_property);
+
+    let tattoo_property = Property {
+        kind: PropertyIdentifier::PropUnit,
+        length: 4,
+        payload: PropertyPayload::Unit(1)
+    };
+    properties.push(tattoo_property);
+
+    let parasites_property = Property {
+        kind: PropertyIdentifier::PropParasites,
+        length: 238,
+        payload: PropertyPayload::Parasites(vec!(
+            ParasiteProperty {
+                name: "gimp-comment".to_string(),
+                flags: 1,
+                data: "Test Comment".to_string()
+            },
+            ParasiteProperty {
+                name: "gimp-image-grid".to_string(),
+                flags: 1,
+                data: "(style solid)\n(fgcolor (color-rgba 0 0 0 1)).(bgcolor (color-rgba 1 1 1 1)).(xspacing 10).(yspacing 10).(spacing-unit inches).(xoffset 0).(yoffset 0).(offset-unit inches)
+".to_string()
+            },            
+        ))
+    };
+    properties.push(parasites_property);
+
     xcf.add_properties(&properties);
-    //xcf.add_layers();
+    xcf.add_layers();
     minimal_xcf.write_all(xcf.data.as_slice())?;
     Ok(())
 }

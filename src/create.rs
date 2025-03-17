@@ -9,7 +9,7 @@ use crate::RgbaPixel;
 pub struct XcfCreator {
     pub version: u16,
     pub data: Vec<u8>,
-    pub index: u32,
+    pub index: u64,
 }
 
 //impl Creator for Xcf {
@@ -57,7 +57,7 @@ impl XcfCreator {
         let str_count = str.iter().count() as u32;
         self.extend_u32(str_count + 4);
         self.data.extend_from_slice(str);
-        self.index += str_count;
+        self.index += str_count as u64;
         self.extend_u32(0);
     }
 
@@ -93,44 +93,56 @@ impl XcfCreator {
             match &property.payload {
                 PropertyPayload::Compression(_value) => {
                     self.data.extend_from_slice(&[_value.to_u8()]);
+                    self.index += 1;
                 },
                 PropertyPayload::ResolutionProperty(_value) => {
                     self.extend_u32(_value.xres.to_bits());
                     self.extend_u32(_value.yres.to_bits());
                 },
+                PropertyPayload::Tatoo(_value) => {
+                    self.extend_u32(*_value);
+                },
+                PropertyPayload::Unit(_value) => {
+                    self.extend_u32(*_value);
+                },
+                PropertyPayload::Parasites(_parasites) => {
+                    for parasite in _parasites {
+                        self.data.extend_from_slice(&[0, 0, 0, 13]);
+                        self.data.extend_from_slice(&parasite.name.as_bytes().to_vec());
+                        self.data.extend_from_slice(&[0]);
+                        self.index += parasite.name.as_bytes().to_vec().len() as u64 + 5;
+                        self.extend_u32(parasite.flags);
+                        self.data.extend_from_slice(&[0, 0, 0, 13]);
+                        self.data.extend_from_slice(&parasite.data.as_bytes().to_vec());
+                        self.data.extend_from_slice(&[0]);
+                        self.index += parasite.data.as_bytes().to_vec().len() as u64 + 5;
+                    }
+                },
                 _ => {}
             }
-            self.index += 1;
+            //self.index += 1;
         }
 
         self.prop_end();
     }
 
-    pub fn add_layers(&mut self) {
+    pub fn _add_layers_v10(&mut self) {
         let mut intermediate_buf = vec!();
         let mut layer_offset_zero_index = 0;
 
-        if self.version >= 11 {
-            self.buf_extend_u64( &mut intermediate_buf, &mut layer_offset_zero_index, 0); // layer_offset[n] : 0 = end
-            self.buf_extend_u64(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // channel_offset[] = 0 => end
-        }
-        else {
-            self.buf_extend_u32(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // layer_offset[n] : 0 = end
-            self.buf_extend_u32(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // channel_offset[] = 0 => end
-        }
-        self.index += layer_offset_zero_index;
+        self.buf_extend_u32(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // layer_offset[n] : 0 = end
+        self.buf_extend_u32(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // channel_offset[] = 0 => end
+
+        self.index += layer_offset_zero_index as u64;
 
         let mut layer_offset_one_buf = vec!();
         let mut layer_offset_one_index = 0;
-        if self.version >= 11 {
-            self.buf_extend_u64( &mut layer_offset_one_buf, &mut layer_offset_one_index, self.index as u64 + 8); // layer_offset[0] = le pointer du calque
-        }
-        else {
-            self.buf_extend_u32( &mut layer_offset_one_buf, &mut layer_offset_one_index, self.index + 4); // layer_offset[0] = le pointer du calque
-        }
+
+        self.buf_extend_u32( &mut layer_offset_one_buf, &mut layer_offset_one_index, self.index as u32 + 4); // layer_offset[0] = le pointer du calque
+
         layer_offset_one_buf.extend_from_slice(&intermediate_buf);
         self.data.extend_from_slice(&layer_offset_one_buf);
-        self.index += layer_offset_one_index;
+        self.index += layer_offset_one_index as u64;
     
         self.extend_u32(1); // layer[0] : width=1
         self.extend_u32(1); // layer[0] : height=1
@@ -171,55 +183,110 @@ impl XcfCreator {
 
 
         // hierarchy offset
-        if self.version >= 11 {
-            self.extend_u64(self.index as u64 + 16);
-            self.extend_u64(0); // mask offset
-        } else {
-            self.extend_u32(self.index + 8);
-            self.extend_u32(0); // mask offset
-        }
+        self.extend_u32(self.index as u32 + 8);
+        self.extend_u32(0); // mask offset
 
         // https://testing.developer.gimp.org/core/standards/xcf/#the-hierarchy-structure
         self.extend_u32(1); // width=1
         self.extend_u32(1); // height=1
         self.extend_u32(3); // bpp=3 : RGB color without alpha in 8-bit precision
-        if self.version >= 11 {
-            self.extend_u64(self.index as u64 + 16); // offset[0]
-            self.extend_u64(0);
 
-            self.extend_u32(1); // level[0] width =1
-            self.extend_u32(1); // level[0] height =1
+        self.extend_u32(self.index as u32 + 8); // offset[0]
 
-            self.extend_u32(0); // ptr : Pointer to tile data
+        self.extend_u32(0); // offset[n] = 0 => end
 
-            /*
-            self.extend_u32(self.index + 8); // offset
-            self.extend_u32(0);
+        self.extend_u32(1); // level[0] width =1
+        self.extend_u32(1); // level[0] height =1
+        self.extend_u32(self.index as u32 + 8); // offset= le pointer du contenu
 
-            self.extend_u32(0); // data_offset[0] = 0 => end
-            */
+        self.extend_u32(0); // data_offset[0] = 0 => end
 
-            //let slice = [00, 158, 00, 36, 00, 222]; // violet r: 158, g: 23, b: 222  with RLE compression
-            let slice = [0, 0, 02, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36]; // violet r: 158, g: 36, b: 222  without compression
-            //let slice = [255, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-            // \0\0\2\xa4\0\0\0\0\0\0\0\0\0\x9e
-            self.data.extend_from_slice(&slice);
-        } else {
-            self.extend_u32(self.index + 8); // offset[0]
+        //let slice = [00, 158, 00, 36, 00, 222]; // violet r: 158, g: 23, b: 222  with RLE compression
+        let slice = [158, 36, 222]; // violet r: 158, g: 36, b: 222  without compression
 
-            self.extend_u32(0); // offset[n] = 0 => end
+        // \0\0\2\xa4\0\0\0\0\0\0\0\0\0\x9e
+        self.data.extend_from_slice(&slice);
+    }
 
-            self.extend_u32(1); // level[0] width =1
-            self.extend_u32(1); // level[0] height =1
-            self.extend_u32(self.index + 8); // offset= le pointer du contenu
-    
-            self.extend_u32(0); // data_offset[0] = 0 => end
-
-            //let slice = [00, 158, 00, 36, 00, 222]; // violet r: 158, g: 23, b: 222  with RLE compression
-            let slice = [158, 36, 222]; // violet r: 158, g: 36, b: 222  without compression
-
-            // \0\0\2\xa4\0\0\0\0\0\0\0\0\0\x9e
-            self.data.extend_from_slice(&slice);
+    pub fn add_layers(&mut self) {
+        if self.version < 11 {
+            self._add_layers_v10();
+            return;
         }
+        let mut layer_offset_zero_index = 0;
+
+        let layer_index = self.index + 24; // 24 = 8 x 3 pour le layer_offset[0] + layer_offset[1] + channel_offset[0]
+        self.extend_u64(layer_index);
+        self.extend_u64(0); // layer_offset[1] = 0
+        self.extend_u64(0); // channel_offset[0] = 0
+        
+    
+        self.extend_u32(1); // layer[0] : width=1
+        self.extend_u32(1); // layer[0] : height=1
+        self.extend_u32(0); // layer[0] : type=RGB
+    
+        // layer name :
+        self.gimp_string(b"Background");
+    
+        self.extend_u32(PropertyIdentifier::PropActiveLayer as u32); // prop = 2 : active layer
+        self.extend_u32(0);
+    
+        self.extend_u32(PropertyIdentifier::PropOpacity as u32); // prop : opacity
+        self.extend_u32(4); // prop opacity size
+        self.extend_u32(RgbaPixel::new(0, 0, 0, 255).to_u32()); // color of opacity = black
+    
+        self.extend_u32(PropertyIdentifier::PropMode as u32); // prop : Mode
+        self.extend_u32(4); // prop mode size
+        self.extend_u32(0); // prop mode=normal
+    
+        // TODO : à améliorer, ça doit être une valeur en float
+        self.extend_u32(PropertyIdentifier::PropFloatOpacity as u32); // prop : float opacity
+        self.extend_u32(4); // prop float opacity size
+        let float_slice = [63, 128, 0, 0];
+        self.data.extend_from_slice(&float_slice); // prop float opacity value
+        self.index += 4;
+    
+        self.extend_u32(PropertyIdentifier::PropVisible as u32); // prop : visible
+        self.extend_u32(4); // prop visible size
+        let float_slice = [0, 0, 0, 1];
+        self.data.extend_from_slice(&float_slice); // prop visible value
+        self.index += 4;
+    
+        self.extend_u32(PropertyIdentifier::PropLinked as u32); // prop : linked
+        self.extend_u32(4); // prop linked size
+        self.extend_u32(0); // prop linked value
+    
+        self.prop_end();
+
+        // hierarchy offset
+
+        self.extend_u64(self.index as u64 + 16);
+        self.extend_u64(0); // mask offset
+
+        // https://testing.developer.gimp.org/core/standards/xcf/#the-hierarchy-structure
+        self.extend_u32(1); // width=1
+        self.extend_u32(1); // height=1
+        self.extend_u32(3); // bpp=3 : RGB color without alpha in 8-bit precision
+
+        self.extend_u64(self.index as u64 + 16); // offset[0]
+        self.extend_u64(0);
+
+        self.extend_u32(1); // level[0] width =1
+        self.extend_u32(1); // level[0] height =1
+
+        self.extend_u32(0); // ptr : Pointer to tile data
+
+        /*
+        self.extend_u32(self.index + 8); // offset
+        self.extend_u32(0);
+
+        self.extend_u32(0); // data_offset[0] = 0 => end
+        */
+
+        //let slice = [00, 158, 00, 36, 00, 222]; // violet r: 158, g: 23, b: 222  with RLE compression
+        let slice = [0, 0, 02, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36]; // violet r: 158, g: 36, b: 222  without compression
+        //let slice = [255, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        // \0\0\2\xa4\0\0\0\0\0\0\0\0\0\x9e
+        self.data.extend_from_slice(&slice);
     }
 }
