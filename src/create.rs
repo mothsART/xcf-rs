@@ -107,12 +107,12 @@ impl XcfCreator {
                 },
                 PropertyPayload::Parasites(_parasites) => {
                     for parasite in _parasites {
-                        self.data.extend_from_slice(&[0, 0, 0, 13]);
+                        self.data.extend_from_slice(&[0, 0, 0, 16]);
                         self.data.extend_from_slice(&parasite.name.as_bytes().to_vec());
                         self.data.extend_from_slice(&[0]);
                         self.index += parasite.name.as_bytes().to_vec().len() as u64 + 5;
                         self.extend_u32(parasite.flags);
-                        self.data.extend_from_slice(&[0, 0, 0, 13]);
+                        self.data.extend_from_slice(&[0, 0, 0, 16]);
                         self.data.extend_from_slice(&parasite.data.as_bytes().to_vec());
                         self.data.extend_from_slice(&[0]);
                         self.index += parasite.data.as_bytes().to_vec().len() as u64 + 5;
@@ -120,7 +120,6 @@ impl XcfCreator {
                 },
                 _ => {}
             }
-            //self.index += 1;
         }
 
         self.prop_end();
@@ -213,7 +212,6 @@ impl XcfCreator {
             self._add_layers_v10();
             return;
         }
-        let mut layer_offset_zero_index = 0;
 
         let layer_index = self.index + 24; // 24 = 8 x 3 pour le layer_offset[0] + layer_offset[1] + channel_offset[0]
         self.extend_u64(layer_index);
@@ -226,7 +224,14 @@ impl XcfCreator {
         self.extend_u32(0); // layer[0] : type=RGB
     
         // layer name :
-        self.gimp_string(b"Background");
+        //self.gimp_string(b"Background");
+
+        let layer_name = b"Background";
+        let str_count = layer_name.len() as u32 + 1;
+        self.extend_u32(str_count);
+        self.data.extend_from_slice(layer_name);
+        self.data.extend_from_slice(&[0]);
+        self.index += str_count as u64;
     
         self.extend_u32(PropertyIdentifier::PropActiveLayer as u32); // prop = 2 : active layer
         self.extend_u32(0);
@@ -234,10 +239,6 @@ impl XcfCreator {
         self.extend_u32(PropertyIdentifier::PropOpacity as u32); // prop : opacity
         self.extend_u32(4); // prop opacity size
         self.extend_u32(RgbaPixel::new(0, 0, 0, 255).to_u32()); // color of opacity = black
-    
-        self.extend_u32(PropertyIdentifier::PropMode as u32); // prop : Mode
-        self.extend_u32(4); // prop mode size
-        self.extend_u32(0); // prop mode=normal
     
         // TODO : à améliorer, ça doit être une valeur en float
         self.extend_u32(PropertyIdentifier::PropFloatOpacity as u32); // prop : float opacity
@@ -255,19 +256,73 @@ impl XcfCreator {
         self.extend_u32(PropertyIdentifier::PropLinked as u32); // prop : linked
         self.extend_u32(4); // prop linked size
         self.extend_u32(0); // prop linked value
-    
+
+        self.extend_u32(PropertyIdentifier::PropColorTag as u32); // prop : color tag
+        self.extend_u32(4);
+        self.extend_u32(0);
+
+        self.extend_u32(PropertyIdentifier::PropLockContent as u32); // prop : lock content
+        self.extend_u32(4); 
+        self.extend_u32(0);
+
+        self.extend_u32(PropertyIdentifier::PropLockAlpha as u32); // prop : lock alpha
+        self.extend_u32(4);
+        self.extend_u32(0);
+
+        self.extend_u32(PropertyIdentifier::PropLockPosition as u32); // prop : lock position
+        self.extend_u32(4);
+        self.extend_u32(0);
+
+        self.extend_u32(PropertyIdentifier::PropApplyMask as u32); // prop : apply mask
+        self.extend_u32(4);
+        self.extend_u32(0);
+
+        self.extend_u32(PropertyIdentifier::PropEditMask as u32); // prop : edit mask
+        self.extend_u32(4);
+        self.extend_u32(0);
+
+        self.extend_u32(PropertyIdentifier::PropShowMask as u32); // prop : show mask
+        self.extend_u32(4);
+        self.extend_u32(0);
+
+        self.extend_u32(PropertyIdentifier::PropOffsets as u32); // prop : offsets
+        self.extend_u32(8); // size = 8
+        self.extend_u32(0); //ofst_x = 0
+        self.extend_u32(0); //ofst_y = 0
+
+        self.extend_u32(PropertyIdentifier::PropMode as u32); // prop : mode
+        self.extend_u32(4);
+        self.extend_u32(0);
+
+        self.extend_u32(PropertyIdentifier::PropBlendSpace as u32); // prop : blend space
+        self.extend_u32(4);
+        self.extend_u32(0);
+
+        self.extend_u32(PropertyIdentifier::PropCompositeSpace as u32); // prop : composite space
+        self.extend_u32(4);
+        self.extend_u32(0);
+
+        self.extend_u32(PropertyIdentifier::PropCompositeMode as u32); // prop : composite mode
+        self.extend_u32(4);
+        self.extend_u32(0);
+
+        self.extend_u32(PropertyIdentifier::PropTattoo as u32); // prop : tattoo
+        self.extend_u32(4);
+        self.extend_u32(2);
+
         self.prop_end();
 
         // hierarchy offset
 
         self.extend_u64(self.index as u64 + 16);
-        self.extend_u64(0); // mask offset
+        self.extend_u64(0); // layer mask offset
 
         // https://testing.developer.gimp.org/core/standards/xcf/#the-hierarchy-structure
         self.extend_u32(1); // width=1
         self.extend_u32(1); // height=1
         self.extend_u32(3); // bpp=3 : RGB color without alpha in 8-bit precision
 
+        println!(">>>> {}", self.index);
         self.extend_u64(self.index as u64 + 16); // offset[0]
         self.extend_u64(0);
 
@@ -275,17 +330,12 @@ impl XcfCreator {
         self.extend_u32(1); // level[0] height =1
 
         self.extend_u32(0); // ptr : Pointer to tile data
-
-        /*
-        self.extend_u32(self.index + 8); // offset
-        self.extend_u32(0);
-
-        self.extend_u32(0); // data_offset[0] = 0 => end
-        */
+        //return;
 
         //let slice = [00, 158, 00, 36, 00, 222]; // violet r: 158, g: 23, b: 222  with RLE compression
-        let slice = [0, 0, 02, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36]; // violet r: 158, g: 36, b: 222  without compression
-        //let slice = [255, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+
+        let slice = [0, 0, 2, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 158, 0, 36, 0, 222]; // violet r: 158, g: 36, b: 222  without compression
         // \0\0\2\xa4\0\0\0\0\0\0\0\0\0\x9e
         self.data.extend_from_slice(&slice);
     }
