@@ -78,7 +78,7 @@ fn write_minimal_xcf11() -> Result<(), Error> {
             kind: ColorType::Rgb,
             alpha: true
         },
-        name: "Bg".to_string(),
+        name: "Background".to_string(),
         pixels: pixels_layer_one,
         properties: properties_layer_one
     };
@@ -154,7 +154,7 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
             kind: ColorType::Rgb,
             alpha: true
         },
-        name: "Bg".to_string(),
+        name: "Background".to_string(),
         pixels: pixels_layer_one,
         properties: properties_layer_one
     };

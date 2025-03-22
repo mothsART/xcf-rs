@@ -1,7 +1,7 @@
 use crate::Error;
 
 #[repr(u32)]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ColorType {
     Rgb = 0,
     Grayscale = 1,

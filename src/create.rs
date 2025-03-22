@@ -126,7 +126,14 @@ impl XcfCreator {
         self.prop_end();
     }
 
-    pub fn _add_layers_v10(&mut self, layers: &Vec<Layer>) {
+    fn _add_layers_properties(&mut self, layers_properties: &Vec<Property>) {
+        for layer_property in layers_properties {
+
+        }
+        self.prop_end();
+    }
+
+    fn _add_layers_v10(&mut self, layers: &Vec<Layer>) {
         let mut intermediate_buf = vec!();
         let mut layer_offset_zero_index = 0;
 
@@ -216,25 +223,50 @@ impl XcfCreator {
 
         // Each layers is 8 bits + 8 bits for close layers + 8 bits for close channels
         let layer_index = self.index + layers.iter().count() as u64 * 8 + 16;
-
         self.extend_u64(layer_index);
         self.extend_u64(0); // layer_offset[1] = 0
         self.extend_u64(0); // channel_offset[0] = 0
         
-    
-        self.extend_u32(1); // layer[0] : width=1
-        self.extend_u32(1); // layer[0] : height=1
-        self.extend_u32(0); // layer[0] : type=RGB
-    
-        // layer name :
-        //self.gimp_string(b"Background");
+        for layer in layers {
+            self.extend_u32(layer.width);
+            self.extend_u32(layer.height);
+            self.extend_u32(layer.kind.kind.clone() as u32);
 
-        let layer_name = b"Background";
-        let str_count = layer_name.len() as u32 + 1;
-        self.extend_u32(str_count);
-        self.data.extend_from_slice(layer_name);
-        self.data.extend_from_slice(&[0]);
-        self.index += str_count as u64;
+            // layer name
+            let str_count = layer.name.as_bytes().len() as u32 + 1;
+            self.extend_u32(str_count);
+            self.data.extend_from_slice(layer.name.as_bytes());
+            self.data.extend_from_slice(&[0]);
+            self.index += str_count as u64;
+
+            // layer properties
+            self._add_layers_properties(&layer.properties);
+
+            // hierarchy offset
+    
+            self.extend_u64(self.index as u64 + 16);
+            self.extend_u64(0); // layer mask offset
+    
+            // https://testing.developer.gimp.org/core/standards/xcf/#the-hierarchy-structure
+            self.extend_u32(layer.pixels.width); // width=1
+            self.extend_u32(layer.pixels.height); // height=1
+            self.extend_u32(3); // bpp=3 : RGB color without alpha in 8-bit precision
+    
+            self.extend_u64(self.index as u64 + 16); // offset[0]
+            self.extend_u64(0);
+    
+            self.extend_u32(layer.pixels.width); // level[0] width =1
+            self.extend_u32(layer.pixels.height); // level[0] height =1
+    
+            self.extend_u32(0); // ptr : Pointer to tile data
+            //return;
+    
+            //let slice = [0, 0, 2, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 158, 0, 36, 0, 222]; // violet r: 158, g: 36, b: 222  without compression
+    
+            let slice = [0, 0, 2, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0];
+            self.data.extend_from_slice(&slice);
+        }
+
     
         /*
         self.extend_u32(PropertyIdentifier::PropActiveLayer as u32); // prop = 2 : active layer
@@ -314,31 +346,5 @@ impl XcfCreator {
         self.extend_u32(4);
         self.extend_u32(2);
         */
-
-        self.prop_end();
-
-        // hierarchy offset
-
-        self.extend_u64(self.index as u64 + 16);
-        self.extend_u64(0); // layer mask offset
-
-        // https://testing.developer.gimp.org/core/standards/xcf/#the-hierarchy-structure
-        self.extend_u32(1); // width=1
-        self.extend_u32(1); // height=1
-        self.extend_u32(3); // bpp=3 : RGB color without alpha in 8-bit precision
-
-        self.extend_u64(self.index as u64 + 16); // offset[0]
-        self.extend_u64(0);
-
-        self.extend_u32(1); // level[0] width =1
-        self.extend_u32(1); // level[0] height =1
-
-        self.extend_u32(0); // ptr : Pointer to tile data
-        //return;
-
-        //let slice = [0, 0, 2, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 158, 0, 36, 0, 222]; // violet r: 158, g: 36, b: 222  without compression
-
-        let slice = [0, 0, 2, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0];
-        self.data.extend_from_slice(&slice);
     }
 }
