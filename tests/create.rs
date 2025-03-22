@@ -43,7 +43,6 @@ fn write_minimal_xcf3() -> Result<(), Error> {
     Ok(())
 }
 
-/*
 #[test]
 fn write_minimal_xcf10() -> Result<(), Error> {
     let path = "tests/samples/minimal_xcf10.xcf";
@@ -68,25 +67,17 @@ fn write_minimal_xcf11() -> Result<(), Error> {
     xcf.add_layers();
     minimal_xcf.write_all(xcf.data.as_slice())?;
 
-    assert_hash(path, "75c58daad76a798d321940468eeda9fd8bca4279");
+    assert_hash(path, "d3f72da31db4e7e7e474aee624038474bec700ea");
     Ok(())
 }
-*/
 
 #[test]
-fn write_minimal() -> Result<(), Error> {
-    let mut minimal_xcf = File::create("tests/samples/minimal.xcf")?;
+fn write_minimal_xcf11_properties() -> Result<(), Error> {
+    let path = "tests/samples/minimal_xcf11_properties.xcf";
+    let mut minimal_xcf = File::create(path)?;
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
 
     let mut properties = vec!();
-
-    let compression_property = Property {
-        kind: PropertyIdentifier::PropCompression,
-        length: 1,
-        payload: PropertyPayload::Compression(XcfCompression::Rle)
-    };
-    properties.push(compression_property);
-
     let resolution_property = Property {
         kind: PropertyIdentifier::PropResolution,
         length: 8,
@@ -111,6 +102,7 @@ fn write_minimal() -> Result<(), Error> {
     };
     properties.push(tattoo_property);
 
+    /*
     let parasites_property = Property {
         kind: PropertyIdentifier::PropParasites,
         length: 238,
@@ -123,12 +115,35 @@ fn write_minimal() -> Result<(), Error> {
             ParasiteProperty {
                 name: "gimp-image-grid".to_string(),
                 flags: 1,
-                data: "(style solid)\n(fgcolor (color-rgba 0 0 0 1)).(bgcolor (color-rgba 1 1 1 1)).(xspacing 10).(yspacing 10).(spacing-unit inches).(xoffset 0).(yoffset 0).(offset-unit inches)
-".to_string()
+                data: "blabla".to_string()
             },            
         ))
     };
     properties.push(parasites_property);
+    */
+    
+    xcf.add_properties(&properties);
+
+    xcf.add_layers();
+    minimal_xcf.write_all(xcf.data.as_slice())?;
+
+    assert_hash(path, "c70bf55ffa024604eb0942bdc853ed137f8163ed");
+    Ok(())
+}
+
+#[test]
+fn write_minimal() -> Result<(), Error> {
+    let mut minimal_xcf = File::create("tests/samples/minimal.xcf")?;
+    let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
+
+    let mut properties = vec!();
+
+    let compression_property = Property {
+        kind: PropertyIdentifier::PropCompression,
+        length: 1,
+        payload: PropertyPayload::Compression(XcfCompression::None)
+    };
+    properties.push(compression_property);
 
     xcf.add_properties(&properties);
     xcf.add_layers();

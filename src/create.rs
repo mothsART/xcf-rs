@@ -233,6 +233,7 @@ impl XcfCreator {
         self.data.extend_from_slice(&[0]);
         self.index += str_count as u64;
     
+        /*
         self.extend_u32(PropertyIdentifier::PropActiveLayer as u32); // prop = 2 : active layer
         self.extend_u32(0);
     
@@ -309,6 +310,7 @@ impl XcfCreator {
         self.extend_u32(PropertyIdentifier::PropTattoo as u32); // prop : tattoo
         self.extend_u32(4);
         self.extend_u32(2);
+        */
 
         self.prop_end();
 
@@ -322,7 +324,6 @@ impl XcfCreator {
         self.extend_u32(1); // height=1
         self.extend_u32(3); // bpp=3 : RGB color without alpha in 8-bit precision
 
-        println!(">>>> {}", self.index);
         self.extend_u64(self.index as u64 + 16); // offset[0]
         self.extend_u64(0);
 
@@ -332,11 +333,9 @@ impl XcfCreator {
         self.extend_u32(0); // ptr : Pointer to tile data
         //return;
 
-        //let slice = [00, 158, 00, 36, 00, 222]; // violet r: 158, g: 23, b: 222  with RLE compression
+        //let slice = [0, 0, 2, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 158, 0, 36, 0, 222]; // violet r: 158, g: 36, b: 222  without compression
 
-
-        let slice = [0, 0, 2, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 158, 0, 36, 0, 222]; // violet r: 158, g: 36, b: 222  without compression
-        // \0\0\2\xa4\0\0\0\0\0\0\0\0\0\x9e
+        let slice = [0, 0, 2, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0];
         self.data.extend_from_slice(&slice);
     }
 }
