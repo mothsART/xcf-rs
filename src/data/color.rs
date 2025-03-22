@@ -9,7 +9,7 @@ pub enum ColorType {
 }
 
 impl ColorType {
-    pub fn new(kind: u32) -> Result<ColorType, Error> {
+    pub(crate) fn new(kind: u32) -> Result<ColorType, Error> {
         use self::ColorType::*;
         Ok(match kind {
             0 => Rgb,

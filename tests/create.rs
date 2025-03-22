@@ -2,10 +2,12 @@ use std::fs::File;
 use std::io:: Write;
 use sha1::{Digest, Sha1};
 
-use xcf::data::{color::ColorType, error::Error, property::{Property, PropertyIdentifier, PropertyPayload}};
+use xcf::{data::{color::ColorType, error::Error, property::{Property, PropertyIdentifier, PropertyPayload}}, LayerColorType};
 use xcf::data::xcf::XcfCompression;
 use xcf::create::XcfCreator;
 use xcf::data::property::{ResolutionProperty, ParasiteProperty};
+use xcf::data::layer::Layer;
+use xcf::data::pixeldata::PixelData;
 
 fn assert_hash(path: &'static str, expected_hash: &'static str) {
     let bytes = std::fs::read(&path).unwrap();
@@ -22,7 +24,7 @@ fn write_minimal_xcf1() -> Result<(), Error> {
     let mut xcf = XcfCreator::new(1, 1, 1, ColorType::Rgb);
     let properties = vec!();
     xcf.add_properties(&properties);
-    xcf.add_layers();
+    xcf.add_layers(&vec!());
     minimal_xcf.write_all(xcf.data.as_slice())?;
 
     assert_hash(path, "9e54fb4fc2658de528398a66cc684ada35866807");
@@ -36,7 +38,7 @@ fn write_minimal_xcf3() -> Result<(), Error> {
     let mut xcf = XcfCreator::new(3, 1, 1, ColorType::Rgb);
     let properties = vec!();
     xcf.add_properties(&properties);
-    xcf.add_layers();
+    xcf.add_layers(&vec!());
     minimal_xcf.write_all(xcf.data.as_slice())?;
 
     assert_hash(path, "1b9d7187a9b783cd3ce16790ab1ebe7a05eac119");
@@ -50,7 +52,7 @@ fn write_minimal_xcf10() -> Result<(), Error> {
     let mut xcf = XcfCreator::new(10, 1, 1, ColorType::Rgb);
     let properties = vec!();
     xcf.add_properties(&properties);
-    xcf.add_layers();
+    xcf.add_layers(&vec!());
     minimal_xcf.write_all(xcf.data.as_slice())?;
 
     assert_hash(path, "72dbe0106f48fb25d0fd047acf519f13a3dff086");
@@ -64,7 +66,24 @@ fn write_minimal_xcf11() -> Result<(), Error> {
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
     let properties = vec!();
     xcf.add_properties(&properties);
-    xcf.add_layers();
+
+    let mut layers = vec!();
+    let pixels = vec!();
+    let pixels_layer_one: PixelData = PixelData { width: 1, height: 1, pixels: pixels };
+    let properties_layer_one = vec!();
+    let layer_one = Layer {
+        width: 1,
+        height: 1,
+        kind: LayerColorType {
+            kind: ColorType::Rgb,
+            alpha: true
+        },
+        name: "Bg".to_string(),
+        pixels: pixels_layer_one,
+        properties: properties_layer_one
+    };
+    layers.push(layer_one);
+    xcf.add_layers(&layers);
     minimal_xcf.write_all(xcf.data.as_slice())?;
 
     assert_hash(path, "d3f72da31db4e7e7e474aee624038474bec700ea");
@@ -124,7 +143,23 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
     
     xcf.add_properties(&properties);
 
-    xcf.add_layers();
+    let mut layers = vec!();
+    let pixels = vec!();
+    let pixels_layer_one: PixelData = PixelData { width: 1, height: 1, pixels: pixels };
+    let properties_layer_one = vec!();
+    let layer_one = Layer {
+        width: 1,
+        height: 1,
+        kind: LayerColorType {
+            kind: ColorType::Rgb,
+            alpha: true
+        },
+        name: "Bg".to_string(),
+        pixels: pixels_layer_one,
+        properties: properties_layer_one
+    };
+    layers.push(layer_one);
+    xcf.add_layers(&layers);
     minimal_xcf.write_all(xcf.data.as_slice())?;
 
     assert_hash(path, "c70bf55ffa024604eb0942bdc853ed137f8163ed");
@@ -144,9 +179,25 @@ fn write_minimal() -> Result<(), Error> {
         payload: PropertyPayload::Compression(XcfCompression::None)
     };
     properties.push(compression_property);
-
     xcf.add_properties(&properties);
-    xcf.add_layers();
+
+    let mut layers = vec!();
+    let pixels = vec!();
+    let pixels_layer_one: PixelData = PixelData { width: 1, height: 1, pixels: pixels };
+    let properties_layer_one = vec!();
+    let layer_one = Layer {
+        width: 1,
+        height: 1,
+        kind: LayerColorType {
+            kind: ColorType::Rgb,
+            alpha: true
+        },
+        name: "Bg".to_string(),
+        pixels: pixels_layer_one,
+        properties: properties_layer_one
+    };
+    layers.push(layer_one);
+    xcf.add_layers(&layers);
     minimal_xcf.write_all(xcf.data.as_slice())?;
     Ok(())
 }

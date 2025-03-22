@@ -1,6 +1,7 @@
 use byteorder::{BigEndian, ByteOrder};
 
 use crate::data::color::ColorType;
+use crate::data::layer::Layer;
 use crate::data::property::Property;
 use crate::data::property::PropertyPayload;
 use crate::PropertyIdentifier;
@@ -125,7 +126,7 @@ impl XcfCreator {
         self.prop_end();
     }
 
-    pub fn _add_layers_v10(&mut self) {
+    pub fn _add_layers_v10(&mut self, layers: &Vec<Layer>) {
         let mut intermediate_buf = vec!();
         let mut layer_offset_zero_index = 0;
 
@@ -207,13 +208,15 @@ impl XcfCreator {
         self.data.extend_from_slice(&slice);
     }
 
-    pub fn add_layers(&mut self) {
+    pub fn add_layers(&mut self, layers: &Vec<Layer>) {
         if self.version < 11 {
-            self._add_layers_v10();
+            self._add_layers_v10(layers);
             return;
         }
 
-        let layer_index = self.index + 24; // 24 = 8 x 3 pour le layer_offset[0] + layer_offset[1] + channel_offset[0]
+        // Each layers is 8 bits + 8 bits for close layers + 8 bits for close channels
+        let layer_index = self.index + layers.iter().count() as u64 * 8 + 16;
+
         self.extend_u64(layer_index);
         self.extend_u64(0); // layer_offset[1] = 0
         self.extend_u64(0); // channel_offset[0] = 0
