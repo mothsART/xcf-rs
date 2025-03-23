@@ -85,7 +85,7 @@ fn write_minimal_xcf11() -> Result<(), Error> {
     xcf.add_layers(&layers);
     minimal_xcf.write_all(xcf.data.as_slice())?;
 
-    assert_hash(path, "fcfade34efe058ceb598c379edbb2f276b74ea26");
+    assert_hash(path, "6d6e2decc5c6393e83c6ac255e99fdf6617c4a95");
     Ok(())
 }
 

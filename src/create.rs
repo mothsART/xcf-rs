@@ -313,12 +313,10 @@ impl XcfCreator {
             self.extend_u32(4);
             self.extend_u32(0);
 
-            /*
             // composite space
             self.extend_u32(PropertyIdentifier::PropCompositeSpace as u32);
             self.extend_u32(4);
             self.extend_u32(u32::MAX);
-            */
 
             // composite mode
             self.extend_u32(PropertyIdentifier::PropCompositeMode as u32);
