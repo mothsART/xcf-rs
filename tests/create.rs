@@ -67,7 +67,9 @@ fn write_minimal_xcf11() -> Result<(), Error> {
     xcf.add_properties(&vec!());
 
     let mut layers = vec!();
-    let pixels = vec!();
+    let pixels = vec![
+        RgbaPixel::new(158, 36, 222, 0),
+    ];
     let pixels_layer_one: PixelData = PixelData { width: 1, height: 1, pixels: pixels };
     let properties_layer_one = vec!();
     let layer_one = Layer {
@@ -139,7 +141,9 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
     xcf.add_properties(&properties);
 
     let mut layers = vec!();
-    let pixels = vec!();
+    let pixels = vec![
+        RgbaPixel::new(158, 36, 222, 0),
+    ];
     let pixels_layer_one: PixelData = PixelData { width: 1, height: 1, pixels: pixels };
     let properties_layer_one = vec![
         Property {
@@ -252,7 +256,6 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
     Ok(())
 }
 
-/*
 #[test]
 fn write_minimal() -> Result<(), Error> {
     let mut minimal_xcf = File::create("tests/samples/minimal.xcf")?;
@@ -279,4 +282,3 @@ fn write_minimal() -> Result<(), Error> {
     minimal_xcf.write_all(xcf.data.as_slice())?;
     Ok(())
 }
-*/

@@ -459,13 +459,13 @@ impl XcfCreator {
             self.extend_u32(0); // ptr : Pointer to tile data
 
             if self.compression == XcfCompression::Rle {
+                self.extend_u32(self.index as u32 + 12);
                 let slice = [
-                    0, 0, 2, 164,
-                    0, 0, 0, 0, 0, 0,
-                    0, 0, 
-                    0, 158, // red
-                    0, 36, // green
-                    0, 222 // blue
+                    0, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, layer.pixels.pixels[0].r(), // red
+                    0, layer.pixels.pixels[0].g(), // green
+                    0, layer.pixels.pixels[0].b() // blue
                 ];
                 self.data.extend_from_slice(&slice);
             } else {
