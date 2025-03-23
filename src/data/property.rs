@@ -1,8 +1,11 @@
 use std::io::Read;
 use byteorder::{BigEndian, ReadBytesExt};
 
+use crate::RgbaPixel;
 use crate::data::error::Error;
 use crate::data::xcf::XcfCompression;
+
+use super::rgba;
 
 #[derive(Debug, PartialEq)]
 pub struct ResolutionProperty {
@@ -26,6 +29,24 @@ pub enum PropertyPayload {
     Tatoo(u32),
     Unit(u32),
     Parasites(Vec<ParasiteProperty>),
+    // layer property
+    ActiveLayer(),
+    OpacityProperty(RgbaPixel),
+    FloatOpacityProperty(),
+    VisibleProperty(),
+    LinkedLayerProperty(u32),
+    ColorTagLayerProperty(u32),
+    LockContentLayerProperty(u32),
+    LockAlphaLayerProperty(u32),
+    LockPositionLayerProperty(u32),
+    ApplyMaskLayerProperty(u32),
+    EditMaskLayerProperty(u32),
+    ShowMaskLayerProperty(u32),
+    OffsetsLayerProperty(u32, u32),
+    ModeLayerProperty(u32),
+    BlendSpaceLayerProperty(u32),
+    CompositeSpaceLayerProperty(u32),
+    CompositeModeLayerProperty(u32),
     Unknown(Vec<u8>),
 }
 

@@ -100,10 +100,8 @@ impl XcfCreator {
                     self.extend_u32(_value.xres.to_bits());
                     self.extend_u32(_value.yres.to_bits());
                 },
-                PropertyPayload::Tatoo(_value) => {
-                    self.extend_u32(*_value);
-                },
-                PropertyPayload::Unit(_value) => {
+                PropertyPayload::Tatoo(_value)
+                | PropertyPayload::Unit(_value) => {
                     self.extend_u32(*_value);
                 },
                 PropertyPayload::Parasites(_parasites) => {
@@ -128,7 +126,49 @@ impl XcfCreator {
 
     fn _add_layers_properties(&mut self, layers_properties: &Vec<Property>) {
         for layer_property in layers_properties {
-
+            self.extend_u32(layer_property.kind as u32);
+            self.extend_u32(layer_property.length as u32); // size
+            match &layer_property.payload {
+                PropertyPayload::Compression(_value) => {
+                    self.data.extend_from_slice(&[_value.to_u8()]);
+                    self.index += 1;
+                },
+                PropertyPayload::OpacityProperty(_value) => {
+                    self.data.extend_from_slice(&[_value.r(), _value.g(), _value.b(), _value.a()]);
+                    self.index += 4;
+                },
+                PropertyPayload::FloatOpacityProperty() => {
+                    // TODO : à améliorer, ça doit être une valeur en float
+                    let float_slice = [63, 128, 0, 0];
+                    self.data.extend_from_slice(&float_slice); // prop float opacity value
+                    self.index += 4;
+                },
+                PropertyPayload::VisibleProperty() => {
+                    let float_slice = [0, 0, 0, 1];
+                    self.data.extend_from_slice(&float_slice); // prop visible value
+                    self.index += 4;
+                },
+                PropertyPayload::OffsetsLayerProperty(_offset_x, _offset_y) => {
+                    self.extend_u32(*_offset_x);
+                    self.extend_u32(*_offset_y);
+                },
+                PropertyPayload::LinkedLayerProperty(_value)
+                | PropertyPayload::ColorTagLayerProperty(_value)
+                | PropertyPayload::LockContentLayerProperty(_value)
+                | PropertyPayload::LockAlphaLayerProperty(_value)
+                | PropertyPayload::LockPositionLayerProperty(_value)
+                | PropertyPayload::ApplyMaskLayerProperty(_value)
+                | PropertyPayload::EditMaskLayerProperty(_value)
+                | PropertyPayload::ShowMaskLayerProperty(_value)
+                | PropertyPayload::ModeLayerProperty(_value)
+                | PropertyPayload::BlendSpaceLayerProperty(_value)
+                | PropertyPayload::CompositeSpaceLayerProperty(_value)
+                | PropertyPayload::CompositeModeLayerProperty(_value)
+                | PropertyPayload::Tatoo(_value)  => {
+                    self.extend_u32(*_value);
+                },
+                _ => {}
+            }
         }
         self.prop_end();
     }
@@ -259,92 +299,25 @@ impl XcfCreator {
             self.extend_u32(layer.pixels.height); // level[0] height =1
     
             self.extend_u32(0); // ptr : Pointer to tile data
-            //return;
-    
-            //let slice = [0, 0, 2, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 158, 0, 36, 0, 222]; // violet r: 158, g: 36, b: 222  without compression
-    
-            let slice = [0, 0, 2, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0];
+
+            let slice = [
+                0, 0, 2, 164,
+                0, 0, 0, 0, 0, 0,
+                0, 0, 0, 158,
+                0, 36, 0, 222
+            ];
+
+            /*
+            let slice = [
+                150, 150,
+                150, 20,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                150, 150,
+                150, 255, 150, 10
+            ];
+            */
+
             self.data.extend_from_slice(&slice);
         }
-
-    
-        /*
-        self.extend_u32(PropertyIdentifier::PropActiveLayer as u32); // prop = 2 : active layer
-        self.extend_u32(0);
-    
-        self.extend_u32(PropertyIdentifier::PropOpacity as u32); // prop : opacity
-        self.extend_u32(4); // prop opacity size
-        self.extend_u32(RgbaPixel::new(0, 0, 0, 255).to_u32()); // color of opacity = black
-    
-        // TODO : à améliorer, ça doit être une valeur en float
-        self.extend_u32(PropertyIdentifier::PropFloatOpacity as u32); // prop : float opacity
-        self.extend_u32(4); // prop float opacity size
-        let float_slice = [63, 128, 0, 0];
-        self.data.extend_from_slice(&float_slice); // prop float opacity value
-        self.index += 4;
-    
-        self.extend_u32(PropertyIdentifier::PropVisible as u32); // prop : visible
-        self.extend_u32(4); // prop visible size
-        let float_slice = [0, 0, 0, 1];
-        self.data.extend_from_slice(&float_slice); // prop visible value
-        self.index += 4;
-    
-        self.extend_u32(PropertyIdentifier::PropLinked as u32); // prop : linked
-        self.extend_u32(4); // prop linked size
-        self.extend_u32(0); // prop linked value
-
-        self.extend_u32(PropertyIdentifier::PropColorTag as u32); // prop : color tag
-        self.extend_u32(4);
-        self.extend_u32(0);
-
-        self.extend_u32(PropertyIdentifier::PropLockContent as u32); // prop : lock content
-        self.extend_u32(4); 
-        self.extend_u32(0);
-
-        self.extend_u32(PropertyIdentifier::PropLockAlpha as u32); // prop : lock alpha
-        self.extend_u32(4);
-        self.extend_u32(0);
-
-        self.extend_u32(PropertyIdentifier::PropLockPosition as u32); // prop : lock position
-        self.extend_u32(4);
-        self.extend_u32(0);
-
-        self.extend_u32(PropertyIdentifier::PropApplyMask as u32); // prop : apply mask
-        self.extend_u32(4);
-        self.extend_u32(0);
-
-        self.extend_u32(PropertyIdentifier::PropEditMask as u32); // prop : edit mask
-        self.extend_u32(4);
-        self.extend_u32(0);
-
-        self.extend_u32(PropertyIdentifier::PropShowMask as u32); // prop : show mask
-        self.extend_u32(4);
-        self.extend_u32(0);
-
-        self.extend_u32(PropertyIdentifier::PropOffsets as u32); // prop : offsets
-        self.extend_u32(8); // size = 8
-        self.extend_u32(0); //ofst_x = 0
-        self.extend_u32(0); //ofst_y = 0
-
-        self.extend_u32(PropertyIdentifier::PropMode as u32); // prop : mode
-        self.extend_u32(4);
-        self.extend_u32(0);
-
-        self.extend_u32(PropertyIdentifier::PropBlendSpace as u32); // prop : blend space
-        self.extend_u32(4);
-        self.extend_u32(0);
-
-        self.extend_u32(PropertyIdentifier::PropCompositeSpace as u32); // prop : composite space
-        self.extend_u32(4);
-        self.extend_u32(0);
-
-        self.extend_u32(PropertyIdentifier::PropCompositeMode as u32); // prop : composite mode
-        self.extend_u32(4);
-        self.extend_u32(0);
-
-        self.extend_u32(PropertyIdentifier::PropTattoo as u32); // prop : tattoo
-        self.extend_u32(4);
-        self.extend_u32(2);
-        */
     }
 }

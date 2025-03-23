@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io:: Write;
 use sha1::{Digest, Sha1};
 
-use xcf::{data::{color::ColorType, error::Error, property::{Property, PropertyIdentifier, PropertyPayload}}, LayerColorType};
+use xcf::{data::{color::ColorType, error::Error, property::{Property, PropertyIdentifier, PropertyPayload}, rgba::RgbaPixel}, LayerColorType};
 use xcf::data::xcf::XcfCompression;
 use xcf::create::XcfCreator;
 use xcf::data::property::{ResolutionProperty, ParasiteProperty};
@@ -114,12 +114,12 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
     };
     properties.push(tattoo_property);
 
-    let tattoo_property = Property {
+    let unit_property = Property {
         kind: PropertyIdentifier::PropUnit,
         length: 4,
         payload: PropertyPayload::Unit(1)
     };
-    properties.push(tattoo_property);
+    properties.push(unit_property);
 
     /*
     let parasites_property = Property {
@@ -147,6 +147,7 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
     let pixels = vec!();
     let pixels_layer_one: PixelData = PixelData { width: 1, height: 1, pixels: pixels };
     let properties_layer_one = vec!();
+
     let layer_one = Layer {
         width: 1,
         height: 1,
@@ -171,20 +172,135 @@ fn write_minimal() -> Result<(), Error> {
     let mut minimal_xcf = File::create("tests/samples/minimal.xcf")?;
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
 
-    let mut properties = vec!();
-
-    let compression_property = Property {
-        kind: PropertyIdentifier::PropCompression,
-        length: 1,
-        payload: PropertyPayload::Compression(XcfCompression::None)
-    };
-    properties.push(compression_property);
+    let properties = vec![
+        Property {
+            kind: PropertyIdentifier::PropCompression,
+            length: 1,
+            payload: PropertyPayload::Compression(XcfCompression::Rle)
+        },
+        Property {
+            kind: PropertyIdentifier::PropResolution,
+            length: 8,
+            payload: PropertyPayload::ResolutionProperty(ResolutionProperty {
+                xres: 300.0,
+                yres:  300.0
+            })
+        },
+        Property {
+            kind: PropertyIdentifier::PropTattoo,
+            length: 4,
+            payload: PropertyPayload::Tatoo(2)
+        },
+        Property {
+            kind: PropertyIdentifier::PropUnit,
+            length: 4,
+            payload: PropertyPayload::Unit(1)
+        }
+    ];
     xcf.add_properties(&properties);
 
     let mut layers = vec!();
-    let pixels = vec!();
+    let pixels = vec![
+        RgbaPixel::new(255, 0, 0, 0),
+    ];
     let pixels_layer_one: PixelData = PixelData { width: 1, height: 1, pixels: pixels };
-    let properties_layer_one = vec!();
+    let mut properties_layer_one = vec![
+        Property {
+            kind: PropertyIdentifier::PropActiveLayer,
+            length: 0,
+            payload: PropertyPayload::ActiveLayer()
+        },
+        Property {
+            kind: PropertyIdentifier::PropOpacity,
+            length: 4,
+            payload: PropertyPayload::OpacityProperty(RgbaPixel::new(0, 0, 0, 255))
+        },
+        Property {
+            kind: PropertyIdentifier::PropFloatOpacity,
+            length: 4,
+            payload: PropertyPayload::FloatOpacityProperty()
+        },
+        Property {
+            kind: PropertyIdentifier::PropVisible,
+            length: 4,
+            payload: PropertyPayload::VisibleProperty()
+        },
+        Property {
+            kind: PropertyIdentifier::PropLinked,
+            length: 4,
+            payload: PropertyPayload::LinkedLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropColorTag,
+            length: 4,
+            payload: PropertyPayload::ColorTagLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropLockContent,
+            length: 4,
+            payload: PropertyPayload::LockContentLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropLockAlpha,
+            length: 4,
+            payload: PropertyPayload::LockAlphaLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropLockPosition,
+            length: 4,
+            payload: PropertyPayload::LockPositionLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropApplyMask,
+            length: 4,
+            payload: PropertyPayload::ApplyMaskLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropEditMask,
+            length: 4,
+            payload: PropertyPayload::EditMaskLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropEditMask,
+            length: 4,
+            payload: PropertyPayload::EditMaskLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropShowMask,
+            length: 4,
+            payload: PropertyPayload::ShowMaskLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropOffsets,
+            length: 8,
+            payload: PropertyPayload::OffsetsLayerProperty(0, 0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropMode,
+            length: 4,
+            payload: PropertyPayload::ModeLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropBlendSpace,
+            length: 4,
+            payload: PropertyPayload::BlendSpaceLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropCompositeSpace,
+            length: 4,
+            payload: PropertyPayload::CompositeSpaceLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropCompositeMode,
+            length: 4,
+            payload: PropertyPayload::CompositeModeLayerProperty(0)
+        },
+        Property {
+            kind: PropertyIdentifier::PropTattoo,
+            length: 4,
+            payload: PropertyPayload::Tatoo(2)
+        },
+    ];
     let layer_one = Layer {
         width: 1,
         height: 1,
