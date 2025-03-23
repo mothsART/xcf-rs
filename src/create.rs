@@ -4,6 +4,7 @@ use crate::data::color::ColorType;
 use crate::data::layer::Layer;
 use crate::data::property::Property;
 use crate::data::property::PropertyPayload;
+use crate::data::xcf::XcfCompression;
 use crate::PropertyIdentifier;
 use crate::RgbaPixel;
 
@@ -11,6 +12,7 @@ pub struct XcfCreator {
     pub version: u16,
     pub data: Vec<u8>,
     pub index: u64,
+    pub compression: XcfCompression
 }
 
 //impl Creator for Xcf {
@@ -69,7 +71,8 @@ impl XcfCreator {
         let mut _self = XcfCreator {
             version,
             data,
-            index
+            index,
+            compression: XcfCompression::None
         };
         _self.create_signature(version);
         _self.extend_u32(width);
@@ -88,6 +91,7 @@ impl XcfCreator {
     }
 
     pub fn add_properties(&mut self, properties: &Vec<Property>) {
+        let mut _has_compression = false;
         for property in properties {
             self.extend_u32(property.kind as u32);
             self.extend_u32(property.length as u32); // size
@@ -95,6 +99,8 @@ impl XcfCreator {
                 PropertyPayload::Compression(_value) => {
                     self.data.extend_from_slice(&[_value.to_u8()]);
                     self.index += 1;
+                    self.compression = _value.clone();
+                    _has_compression = true;
                 },
                 PropertyPayload::ResolutionProperty(_value) => {
                     self.extend_u32(_value.xres.to_bits());
@@ -106,12 +112,13 @@ impl XcfCreator {
                 },
                 PropertyPayload::Parasites(_parasites) => {
                     for parasite in _parasites {
-                        self.data.extend_from_slice(&[0, 0, 0, 16]);
+                        self.data.extend_from_slice(&[0, 0, 0, parasite.name.as_bytes().to_vec().len() as u8 + 1]);
                         self.data.extend_from_slice(&parasite.name.as_bytes().to_vec());
                         self.data.extend_from_slice(&[0]);
                         self.index += parasite.name.as_bytes().to_vec().len() as u64 + 5;
                         self.extend_u32(parasite.flags);
-                        self.data.extend_from_slice(&[0, 0, 0, 16]);
+
+                        self.data.extend_from_slice(&[0, 0, 0, parasite.data.as_bytes().to_vec().len() as u8 + 1]);
                         self.data.extend_from_slice(&parasite.data.as_bytes().to_vec());
                         self.data.extend_from_slice(&[0]);
                         self.index += parasite.data.as_bytes().to_vec().len() as u64 + 5;
@@ -120,11 +127,24 @@ impl XcfCreator {
                 _ => {}
             }
         }
+        if self.version > 10 && (properties.iter().len() == 0 || _has_compression == false) {
+            self.extend_u32(PropertyIdentifier::PropCompression as u32);
+            self.extend_u32(1); // size
+            self.extend_u32(XcfCompression::Rle as u32);
+            self.compression = XcfCompression::Rle;
+            return;
+        }
 
         self.prop_end();
     }
 
     fn _add_layers_properties(&mut self, layers_properties: &Vec<Property>) {
+        if layers_properties.iter().len() == 0 && self.version > 10 {
+            // if version >= 11, than the layer mode must be the new normal mode (not legacy)
+            self.extend_u32(PropertyIdentifier::PropMode as u32);
+            self.extend_u32(4); // size
+            self.extend_u32(28); // mode normal after version 10
+        }
         for layer_property in layers_properties {
             self.extend_u32(layer_property.kind as u32);
             self.extend_u32(layer_property.length as u32); // size
@@ -133,37 +153,37 @@ impl XcfCreator {
                     self.data.extend_from_slice(&[_value.to_u8()]);
                     self.index += 1;
                 },
-                PropertyPayload::OpacityProperty(_value) => {
+                PropertyPayload::OpacityLayer(_value) => {
                     self.data.extend_from_slice(&[_value.r(), _value.g(), _value.b(), _value.a()]);
                     self.index += 4;
                 },
-                PropertyPayload::FloatOpacityProperty() => {
+                PropertyPayload::FloatOpacityLayer() => {
                     // TODO : à améliorer, ça doit être une valeur en float
                     let float_slice = [63, 128, 0, 0];
                     self.data.extend_from_slice(&float_slice); // prop float opacity value
                     self.index += 4;
                 },
-                PropertyPayload::VisibleProperty() => {
+                PropertyPayload::VisibleLayer() => {
                     let float_slice = [0, 0, 0, 1];
                     self.data.extend_from_slice(&float_slice); // prop visible value
                     self.index += 4;
                 },
-                PropertyPayload::OffsetsLayerProperty(_offset_x, _offset_y) => {
+                PropertyPayload::OffsetsLayer(_offset_x, _offset_y) => {
                     self.extend_u32(*_offset_x);
                     self.extend_u32(*_offset_y);
                 },
-                PropertyPayload::LinkedLayerProperty(_value)
-                | PropertyPayload::ColorTagLayerProperty(_value)
-                | PropertyPayload::LockContentLayerProperty(_value)
-                | PropertyPayload::LockAlphaLayerProperty(_value)
-                | PropertyPayload::LockPositionLayerProperty(_value)
-                | PropertyPayload::ApplyMaskLayerProperty(_value)
-                | PropertyPayload::EditMaskLayerProperty(_value)
-                | PropertyPayload::ShowMaskLayerProperty(_value)
-                | PropertyPayload::ModeLayerProperty(_value)
-                | PropertyPayload::BlendSpaceLayerProperty(_value)
-                | PropertyPayload::CompositeSpaceLayerProperty(_value)
-                | PropertyPayload::CompositeModeLayerProperty(_value)
+                PropertyPayload::LinkedLayer(_value)
+                | PropertyPayload::ColorTagLayer(_value)
+                | PropertyPayload::LockContentLayer(_value)
+                | PropertyPayload::LockAlphaLayer(_value)
+                | PropertyPayload::LockPositionLayer(_value)
+                | PropertyPayload::ApplyMaskLayer(_value)
+                | PropertyPayload::EditMaskLayer(_value)
+                | PropertyPayload::ShowMaskLayer(_value)
+                | PropertyPayload::ModeLayer(_value)
+                | PropertyPayload::BlendSpaceLayer(_value)
+                | PropertyPayload::CompositeSpaceLayer(_value)
+                | PropertyPayload::CompositeModeLayer(_value)
                 | PropertyPayload::Tatoo(_value)  => {
                     self.extend_u32(*_value);
                 },
@@ -300,24 +320,19 @@ impl XcfCreator {
     
             self.extend_u32(0); // ptr : Pointer to tile data
 
-            let slice = [
-                0, 0, 2, 164,
-                0, 0, 0, 0, 0, 0,
-                0, 0, 0, 158,
-                0, 36, 0, 222
-            ];
-
-            /*
-            let slice = [
-                150, 150,
-                150, 20,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                150, 150,
-                150, 255, 150, 10
-            ];
-            */
-
-            self.data.extend_from_slice(&slice);
+            if self.compression == XcfCompression::Rle {
+                let slice = [
+                    0, 0, 2, 164,
+                    0, 0, 0, 0, 0, 0,
+                    0, 0, 
+                    0, 158, // red
+                    0, 36, // green
+                    0, 222 // blue
+                ];
+                self.data.extend_from_slice(&slice);
+            } else {
+                panic!("not implemented");
+            }
         }
     }
 }
