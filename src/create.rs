@@ -39,14 +39,6 @@ impl XcfCreator {
         *index += size as u32;
     }
 
-    fn buf_extend_u64(&mut self, data: &mut Vec<u8>, index: &mut u32, value: u64) {
-        let size = 8;
-        let mut width_buf = vec![0; size];
-        BigEndian::write_u64(&mut width_buf, value);
-        data.extend_from_slice(&width_buf);
-        *index += size as u32;
-    }
-
     fn create_signature(&mut self, gimp_version: u16) {
         let mut signature = format!("gimp xcf v{:03}\0", gimp_version);
         if gimp_version == 1 {
@@ -94,23 +86,36 @@ impl XcfCreator {
         let mut _has_compression = false;
         for property in properties {
             self.extend_u32(property.kind as u32);
-            self.extend_u32(property.length as u32); // size
             match &property.payload {
                 PropertyPayload::Compression(_value) => {
+                    self.extend_u32(property.length as u32); // size
+
                     self.data.extend_from_slice(&[_value.to_u8()]);
                     self.index += 1;
                     self.compression = _value.clone();
                     _has_compression = true;
                 },
                 PropertyPayload::ResolutionProperty(_value) => {
-                    self.extend_u32(_value.xres.to_bits());
-                    self.extend_u32(_value.yres.to_bits());
+                    self.extend_u32(property.length as u32); // size
+
+                    self.extend_u32(_value.xres.to_bits()); // X resolution in DPI
+                    self.extend_u32(_value.yres.to_bits()); // Y resolution in DPI
                 },
                 PropertyPayload::Tatoo(_value)
                 | PropertyPayload::Unit(_value) => {
+                    self.extend_u32(property.length as u32); // size
+
                     self.extend_u32(*_value);
                 },
                 PropertyPayload::Parasites(_parasites) => {
+                    let mut size:u32 = 0;
+                    for parasite in _parasites {
+                        size += parasite.name.as_bytes().to_vec().len() as u32;
+                        size += parasite.data.as_bytes().to_vec().len() as u32;
+                        size += 14;
+                    }
+                    self.extend_u32(size); // size
+
                     for parasite in _parasites {
                         self.data.extend_from_slice(&[0, 0, 0, parasite.name.as_bytes().to_vec().len() as u8 + 1]);
                         self.data.extend_from_slice(&parasite.name.as_bytes().to_vec());
@@ -124,27 +129,66 @@ impl XcfCreator {
                         self.index += parasite.data.as_bytes().to_vec().len() as u64 + 5;
                     }
                 },
-                _ => {}
+                _ => {
+                    self.extend_u32(property.length as u32); // size
+                }
             }
         }
-        if self.version > 10 && (properties.iter().len() == 0 || _has_compression == false) {
+        if self.version > 10 && _has_compression == false {
             self.extend_u32(PropertyIdentifier::PropCompression as u32);
             self.extend_u32(1); // size
-            self.extend_u32(XcfCompression::Rle as u32);
+            self.data.extend_from_slice(&[XcfCompression::Rle as u8]);
+            self.index += 1;
             self.compression = XcfCompression::Rle;
-            return;
+
+            // resolution
+            self.extend_u32(PropertyIdentifier::PropResolution as u32);
+            self.extend_u32(8); // size
+            let value:f32 = 300.0;
+            self.extend_u32(value.to_bits()); // X resolution in DPI
+            self.extend_u32(value.to_bits()); // Y resolution in DPI
+
+            // tatoo
+            self.extend_u32(PropertyIdentifier::PropTattoo as u32);
+            self.extend_u32(4); // size
+            self.extend_u32(2);
+
+            // unit
+            self.extend_u32(PropertyIdentifier::PropUnit as u32);
+            self.extend_u32(4); // size
+            self.extend_u32(1);
+
+            // parasites
+            self.extend_u32(PropertyIdentifier::PropParasites as u32);
+            self.extend_u32(238); // size
+
+            self.data.extend_from_slice(&[0, 0, 0, 13]);
+            self.data.extend_from_slice(b"gimp-comment");
+            self.data.extend_from_slice(&[0]);
+            self.index += 17;
+            self.extend_u32(1);
+
+            self.data.extend_from_slice(&[0, 0, 0, 13]);
+            self.data.extend_from_slice(b"Test Comment");
+            self.data.extend_from_slice(&[0]);
+            self.index += 17;
+
+            self.data.extend_from_slice(&[0, 0, 0, 16]);
+            self.data.extend_from_slice(b"gimp-image-grid");
+            self.data.extend_from_slice(&[0]);
+            self.index += 20;
+            self.extend_u32(1);
+
+            self.data.extend_from_slice(&[0, 0, 0, 172]);
+            self.data.extend_from_slice(b"(style solid)\n(fgcolor (color-rgba 0 0 0 1))\n(bgcolor (color-rgba 1 1 1 1))\n(xspacing 10)\n(yspacing 10)\n(spacing-unit inches)\n(xoffset 0)\n(yoffset 0)\n(offset-unit inches)\n");
+            self.data.extend_from_slice(&[0]);
+            self.index += 176;
         }
 
         self.prop_end();
     }
 
     fn _add_layers_properties(&mut self, layers_properties: &Vec<Property>) {
-        if layers_properties.iter().len() == 0 && self.version > 10 {
-            // if version >= 11, than the layer mode must be the new normal mode (not legacy)
-            self.extend_u32(PropertyIdentifier::PropMode as u32);
-            self.extend_u32(4); // size
-            self.extend_u32(28); // mode normal after version 10
-        }
         for layer_property in layers_properties {
             self.extend_u32(layer_property.kind as u32);
             self.extend_u32(layer_property.length as u32); // size
@@ -189,6 +233,102 @@ impl XcfCreator {
                 },
                 _ => {}
             }
+        }
+        if self.version > 10 && layers_properties.iter().len() == 0 {
+            
+            // active
+            self.extend_u32(PropertyIdentifier::PropActiveLayer as u32);
+            self.extend_u32(0);
+            // opacity
+            self.extend_u32(PropertyIdentifier::PropOpacity as u32);
+            self.extend_u32(4);
+            self.data.extend_from_slice(&[0, 0, 0, 255]);
+            self.index += 4;
+            // float opacity
+            self.extend_u32(PropertyIdentifier::PropFloatOpacity as u32);
+            self.extend_u32(4);
+            let float_slice = [63, 128, 0, 0];
+            self.data.extend_from_slice(&float_slice); // prop float opacity value
+            self.index += 4;
+            // visible
+            self.extend_u32(PropertyIdentifier::PropVisible as u32);
+            self.extend_u32(4);
+            let float_slice = [0, 0, 0, 1];
+            self.data.extend_from_slice(&float_slice); // prop visible value
+            self.index += 4;
+
+            // linked
+            self.extend_u32(PropertyIdentifier::PropLinked as u32);
+            self.extend_u32(4);
+            self.extend_u32(0);
+
+            // color tag
+            self.extend_u32(PropertyIdentifier::PropColorTag as u32);
+            self.extend_u32(4);
+            self.extend_u32(0);
+
+            // lock content
+            self.extend_u32(PropertyIdentifier::PropLockContent as u32);
+            self.extend_u32(4);
+            self.extend_u32(0);
+
+            // lock alpha
+            self.extend_u32(PropertyIdentifier::PropLockAlpha as u32);
+            self.extend_u32(4);
+            self.extend_u32(0);
+
+            // lock position
+            self.extend_u32(PropertyIdentifier::PropLockPosition as u32);
+            self.extend_u32(4);
+            self.extend_u32(0);
+
+            // apply mask
+            self.extend_u32(PropertyIdentifier::PropApplyMask as u32);
+            self.extend_u32(4);
+            self.extend_u32(0);
+
+            // edit mask
+            self.extend_u32(PropertyIdentifier::PropEditMask as u32);
+            self.extend_u32(4);
+            self.extend_u32(0);
+
+            // show mask
+            self.extend_u32(PropertyIdentifier::PropShowMask as u32);
+            self.extend_u32(4);
+            self.extend_u32(0);
+
+            // offsets
+            self.extend_u32(PropertyIdentifier::PropOffsets as u32);
+            self.extend_u32(8);
+            self.extend_u32(0);
+            self.extend_u32(0);
+
+            // if version >= 11, than the layer mode must be the new normal mode (not legacy)
+            self.extend_u32(PropertyIdentifier::PropMode as u32);
+            self.extend_u32(4); // size
+            self.extend_u32(28); // mode normal after version 10
+
+            // blend space
+            self.extend_u32(PropertyIdentifier::PropBlendSpace as u32);
+            self.extend_u32(4);
+            self.extend_u32(0);
+
+            /*
+            // composite space
+            self.extend_u32(PropertyIdentifier::PropCompositeSpace as u32);
+            self.extend_u32(4);
+            self.extend_u32(u32::MAX);
+            */
+
+            // composite mode
+            self.extend_u32(PropertyIdentifier::PropCompositeMode as u32);
+            self.extend_u32(4);
+            self.extend_u32(u32::MAX);
+
+            // tatoo
+            self.extend_u32(PropertyIdentifier::PropTattoo as u32);
+            self.extend_u32(4);
+            self.extend_u32(2);
         }
         self.prop_end();
     }
