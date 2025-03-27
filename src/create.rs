@@ -331,7 +331,7 @@ impl XcfCreator {
         self.prop_end();
     }
 
-    fn _add_layers_v10(&mut self, layers: &Vec<Layer>) {
+    fn _add_layers_v10(&mut self, _layers: &Vec<Layer>) {
         let mut intermediate_buf = vec!();
         let mut layer_offset_zero_index = 0;
 
@@ -462,15 +462,72 @@ impl XcfCreator {
                 self.extend_u32(self.index as u32 + 12);
                 let slice = [
                     0, 0, 0, 0,
-                    0, 0, 0, 0,
-                    0, layer.pixels.pixels[0].r(), // red
-                    0, layer.pixels.pixels[0].g(), // green
-                    0, layer.pixels.pixels[0].b() // blue
+                    0, 0, 0, 0
                 ];
                 self.data.extend_from_slice(&slice);
+
+                
+                let mut buffer_r = vec!();
+                let mut buffer_g = vec!();
+                let mut buffer_b = vec!();
+                for pixel in &layer.pixels.pixels {
+                    buffer_r.push(pixel.r());
+                    buffer_g.push(pixel.g());
+                    buffer_b.push(pixel.b());
+                }
+                let mut buffer = vec!();
+
+                buffer.extend(rle_compress(&buffer_r));
+                buffer.extend(rle_compress(&buffer_g));
+                buffer.extend(rle_compress(&buffer_b));
+                self.data.extend_from_slice(&buffer);
             } else {
                 panic!("not implemented");
             }
+        }
+
+        // https://testing.developer.gimp.org/core/standards/xcf/#rle-compressed-tile-data
+        fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
+            let mut compress_data = vec!();
+            let mut last_byte = None;
+            let mut short_identical_len = 0;
+            let mut short_diff_len = 255;
+            let mut verbatim = vec!();
+            for byte in data {
+                if let Some(val) = last_byte {
+                    if *byte == val {
+                        if short_diff_len < 254 {
+                            compress_data.push(short_diff_len - 2);
+                            compress_data.extend_from_slice(&verbatim);
+                            verbatim = vec!();
+                        }
+                        short_diff_len = 255;
+                        short_identical_len += 1;
+                        continue;
+                    }
+                }
+                if short_identical_len > 0 {
+                    compress_data.pop();
+                    compress_data.push(short_identical_len);
+                    compress_data.push(last_byte.unwrap());
+                }
+                short_diff_len -= 1;
+                short_identical_len = 0;
+                if last_byte == None || short_diff_len < 254 {
+                    verbatim.push(*byte);
+                }
+                last_byte = Some(*byte);
+            }
+
+            if short_identical_len == 0 {
+                if verbatim.iter().len() == 1 {
+                    compress_data.push(0);
+                } else {
+                    compress_data.push(short_diff_len + 1);
+                }
+                compress_data.extend_from_slice(&verbatim);
+            }
+            return compress_data;
         }
     }
 }

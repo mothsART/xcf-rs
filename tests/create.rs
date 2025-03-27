@@ -257,18 +257,54 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
 }
 
 #[test]
-fn write_minimal() -> Result<(), Error> {
-    let mut minimal_xcf = File::create("tests/samples/minimal.xcf")?;
-    let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
-
+fn write_minimal_four_pixels() -> Result<(), Error> {
+    let path = "tests/samples/minimal_four_pixels.xcf";
+    let mut minimal_xcf = File::create(path)?;
+    let mut xcf = XcfCreator::new(11, 2, 2, ColorType::Rgb);
+    xcf.add_properties(&vec!());
     let mut layers = vec!();
     let pixels = vec![
-        RgbaPixel::new(255, 0, 0, 0),
+        RgbaPixel::new(158, 0, 0, 0),
+        RgbaPixel::new(0, 0, 158, 0),
+        RgbaPixel::new(255, 114, 5, 0),
+        RgbaPixel::new(43, 121, 34, 0),
     ];
-    let pixels_layer_one: PixelData = PixelData { width: 1, height: 1, pixels: pixels };
+    let pixels_layer_one: PixelData = PixelData { width: 2, height: 2, pixels: pixels };
     let layer_one = Layer {
-        width: 1,
-        height: 1,
+        width: 2,
+        height: 2,
+        kind: LayerColorType {
+            kind: ColorType::Rgb,
+            alpha: true
+        },
+        name: "Background".to_string(),
+        pixels: pixels_layer_one,
+        properties: vec!()
+    };
+    layers.push(layer_one);
+    xcf.add_layers(&layers);
+    minimal_xcf.write_all(xcf.data.as_slice())?;
+
+    assert_hash(path, "9151ba6e763c01a426dee3ed57b18b6979a28595");
+    Ok(())
+}
+
+#[test]
+fn write_miniminiminimal() -> Result<(), Error> {
+    let mut minimal_xcf = File::create("tests/samples/minimal.xcf")?;
+    let mut xcf = XcfCreator::new(11, 2, 2, ColorType::Rgb);
+    xcf.add_properties(&vec!());
+    let mut layers = vec!();
+    let pixels = vec![
+        RgbaPixel::new(158, 0, 0, 0),
+        RgbaPixel::new(0, 0, 158, 0),
+        RgbaPixel::new(255, 114, 5, 0),
+        RgbaPixel::new(43, 121, 34, 0),
+    ];
+    let pixels_layer_one: PixelData = PixelData { width: 2, height: 2, pixels: pixels };
+    let layer_one = Layer {
+        width: 2,
+        height: 2,
         kind: LayerColorType {
             kind: ColorType::Rgb,
             alpha: true

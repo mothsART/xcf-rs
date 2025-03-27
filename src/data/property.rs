@@ -5,8 +5,6 @@ use crate::RgbaPixel;
 use crate::data::error::Error;
 use crate::data::xcf::XcfCompression;
 
-use super::rgba;
-
 #[derive(Debug, PartialEq)]
 pub struct ResolutionProperty {
     pub xres: f32,
