@@ -485,49 +485,49 @@ impl XcfCreator {
                 panic!("not implemented");
             }
         }
-
-        // https://testing.developer.gimp.org/core/standards/xcf/#rle-compressed-tile-data
-        fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
-            let mut compress_data = vec!();
-            let mut last_byte = None;
-            let mut short_identical_len = 0;
-            let mut short_diff_len = 255;
-            let mut verbatim = vec!();
-            for byte in data {
-                if let Some(val) = last_byte {
-                    if *byte == val {
-                        if short_diff_len < 254 {
-                            compress_data.push(short_diff_len - 2);
-                            compress_data.extend_from_slice(&verbatim);
-                            verbatim = vec!();
-                        }
-                        short_diff_len = 255;
-                        short_identical_len += 1;
-                        continue;
-                    }
-                }
-                if short_identical_len > 0 {
-                    compress_data.pop();
-                    compress_data.push(short_identical_len);
-                    compress_data.push(last_byte.unwrap());
-                }
-                short_diff_len -= 1;
-                short_identical_len = 0;
-                if last_byte == None || short_diff_len < 254 {
-                    verbatim.push(*byte);
-                }
-                last_byte = Some(*byte);
-            }
-
-            if short_identical_len == 0 {
-                if verbatim.iter().len() == 1 {
-                    compress_data.push(0);
-                } else {
-                    compress_data.push(short_diff_len + 1);
-                }
-                compress_data.extend_from_slice(&verbatim);
-            }
-            return compress_data;
-        }
     }
+}
+
+// https://testing.developer.gimp.org/core/standards/xcf/#rle-compressed-tile-data
+pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
+    let mut compress_data = vec!();
+    let mut last_byte = None;
+    let mut short_identical_len = 0;
+    let mut short_diff_len = 255;
+    let mut verbatim = vec!();
+    for byte in data {
+        if let Some(val) = last_byte {
+            if *byte == val {
+                if short_diff_len < 254 {
+                    compress_data.push(short_diff_len - 2);
+                    compress_data.extend_from_slice(&verbatim);
+                    verbatim = vec!();
+                }
+                short_diff_len = 255;
+                short_identical_len += 1;
+                continue;
+            }
+        }
+        if short_identical_len > 0 {
+            compress_data.pop();
+            compress_data.push(short_identical_len);
+            compress_data.push(last_byte.unwrap());
+        }
+        short_diff_len -= 1;
+        short_identical_len = 0;
+        if last_byte == None || short_diff_len < 254 {
+            verbatim.push(*byte);
+        }
+        last_byte = Some(*byte);
+    }
+
+    if short_identical_len == 0 {
+        if verbatim.iter().len() == 1 {
+            compress_data.push(0);
+        } else {
+            compress_data.push(short_diff_len + 1);
+        }
+        compress_data.extend_from_slice(&verbatim);
+    }
+    return compress_data;
 }
