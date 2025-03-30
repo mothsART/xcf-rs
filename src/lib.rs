@@ -20,23 +20,15 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
+pub mod create;
 pub mod data;
 pub mod parser;
-pub mod create;
 
-use crate::parser::ParseVersion;
 use crate::data::{
-    error::Error,
-    pixeldata::PixelData,
-    version::Version,
-    rgba::RgbaPixel,
-    color::ColorType,
-    xcf::Xcf,
-    header::XcfHeader,
-    precision::Precision,
-    layer::Layer,
-    property::PropertyPayload
+    color::ColorType, error::Error, header::XcfHeader, layer::Layer, pixeldata::PixelData,
+    precision::Precision, property::PropertyPayload, rgba::RgbaPixel, version::Version, xcf::Xcf,
 };
+use crate::parser::ParseVersion;
 
 use crate::data::property::{Property, PropertyIdentifier};
 

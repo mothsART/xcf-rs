@@ -1,9 +1,9 @@
-use std::io::Read;
 use byteorder::{BigEndian, ReadBytesExt};
+use std::io::Read;
 
-use crate::RgbaPixel;
 use crate::data::error::Error;
 use crate::data::xcf::XcfCompression;
+use crate::RgbaPixel;
 
 #[derive(Debug, PartialEq)]
 pub struct ResolutionProperty {

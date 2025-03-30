@@ -1,11 +1,11 @@
-use crate::{XcfHeader, Layer};
+use crate::{Layer, XcfHeader};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum XcfCompression {
     None = 0,
     Rle = 1,
     Zlib = 2,
-    Fractal = 3
+    Fractal = 3,
 }
 
 impl XcfCompression {

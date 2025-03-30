@@ -1,4 +1,4 @@
-use crate::{Property, ColorType, Version, Precision};
+use crate::{ColorType, Precision, Property, Version};
 
 #[derive(Debug, PartialEq)]
 pub struct XcfHeader {

@@ -1,4 +1,4 @@
-use crate::{PixelData, Property, LayerColorType};
+use crate::{LayerColorType, PixelData, Property};
 
 #[derive(Debug, PartialEq)]
 pub struct Layer {

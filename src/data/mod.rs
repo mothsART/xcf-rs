@@ -1,10 +1,10 @@
-pub mod error;
-pub mod version;
-pub mod rgba;
-pub mod pixeldata;
 pub mod color;
-pub mod xcf;
-pub mod layer;
+pub mod error;
 pub mod header;
+pub mod layer;
+pub mod pixeldata;
 pub mod precision;
 pub mod property;
+pub mod rgba;
+pub mod version;
+pub mod xcf;

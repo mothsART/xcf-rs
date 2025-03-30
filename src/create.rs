@@ -12,7 +12,7 @@ pub struct XcfCreator {
     pub version: u16,
     pub data: Vec<u8>,
     pub index: u64,
-    pub compression: XcfCompression
+    pub compression: XcfCompression,
 }
 
 //impl Creator for Xcf {
@@ -42,14 +42,14 @@ impl XcfCreator {
     fn create_signature(&mut self, gimp_version: u16) {
         let mut signature = format!("gimp xcf v{:03}\0", gimp_version);
         if gimp_version == 1 {
-            signature = format!("gimp xcf file\0");
+            signature = "gimp xcf file\0".to_string();
         }
         self.data.extend_from_slice(signature.as_bytes());
         self.index += 14;
     }
 
     fn gimp_string(&mut self, str: &[u8]) {
-        let str_count = str.iter().count() as u32;
+        let str_count = str.len() as u32;
         self.extend_u32(str_count + 4);
         self.data.extend_from_slice(str);
         self.index += str_count as u64;
@@ -57,14 +57,14 @@ impl XcfCreator {
     }
 
     pub fn new(version: u16, width: u32, height: u32, color_type: ColorType) -> Self {
-        let data = vec!();
+        let data = vec![];
         let index = 0;
 
         let mut _self = XcfCreator {
             version,
             data,
             index,
-            compression: XcfCompression::None
+            compression: XcfCompression::None,
         };
         _self.create_signature(version);
         _self.extend_u32(width);
@@ -94,21 +94,20 @@ impl XcfCreator {
                     self.index += 1;
                     self.compression = _value.clone();
                     _has_compression = true;
-                },
+                }
                 PropertyPayload::ResolutionProperty(_value) => {
                     self.extend_u32(property.length as u32); // size
 
                     self.extend_u32(_value.xres.to_bits()); // X resolution in DPI
                     self.extend_u32(_value.yres.to_bits()); // Y resolution in DPI
-                },
-                PropertyPayload::Tatoo(_value)
-                | PropertyPayload::Unit(_value) => {
+                }
+                PropertyPayload::Tatoo(_value) | PropertyPayload::Unit(_value) => {
                     self.extend_u32(property.length as u32); // size
 
                     self.extend_u32(*_value);
-                },
+                }
                 PropertyPayload::Parasites(_parasites) => {
-                    let mut size:u32 = 0;
+                    let mut size: u32 = 0;
                     for parasite in _parasites {
                         size += parasite.name.as_bytes().to_vec().len() as u32;
                         size += parasite.data.as_bytes().to_vec().len() as u32;
@@ -117,24 +116,36 @@ impl XcfCreator {
                     self.extend_u32(size); // size
 
                     for parasite in _parasites {
-                        self.data.extend_from_slice(&[0, 0, 0, parasite.name.as_bytes().to_vec().len() as u8 + 1]);
-                        self.data.extend_from_slice(&parasite.name.as_bytes().to_vec());
+                        self.data.extend_from_slice(&[
+                            0,
+                            0,
+                            0,
+                            parasite.name.as_bytes().to_vec().len() as u8 + 1,
+                        ]);
+                        self.data
+                            .extend_from_slice(parasite.name.as_bytes());
                         self.data.extend_from_slice(&[0]);
                         self.index += parasite.name.as_bytes().to_vec().len() as u64 + 5;
                         self.extend_u32(parasite.flags);
 
-                        self.data.extend_from_slice(&[0, 0, 0, parasite.data.as_bytes().to_vec().len() as u8 + 1]);
-                        self.data.extend_from_slice(&parasite.data.as_bytes().to_vec());
+                        self.data.extend_from_slice(&[
+                            0,
+                            0,
+                            0,
+                            parasite.data.as_bytes().to_vec().len() as u8 + 1,
+                        ]);
+                        self.data
+                            .extend_from_slice(parasite.data.as_bytes());
                         self.data.extend_from_slice(&[0]);
                         self.index += parasite.data.as_bytes().to_vec().len() as u64 + 5;
                     }
-                },
+                }
                 _ => {
                     self.extend_u32(property.length as u32); // size
                 }
             }
         }
-        if self.version > 10 && _has_compression == false {
+        if self.version > 10 && !_has_compression {
             self.extend_u32(PropertyIdentifier::PropCompression as u32);
             self.extend_u32(1); // size
             self.data.extend_from_slice(&[XcfCompression::Rle as u8]);
@@ -144,7 +155,7 @@ impl XcfCreator {
             // resolution
             self.extend_u32(PropertyIdentifier::PropResolution as u32);
             self.extend_u32(8); // size
-            let value:f32 = 300.0;
+            let value: f32 = 300.0;
             self.extend_u32(value.to_bits()); // X resolution in DPI
             self.extend_u32(value.to_bits()); // Y resolution in DPI
 
@@ -196,26 +207,27 @@ impl XcfCreator {
                 PropertyPayload::Compression(_value) => {
                     self.data.extend_from_slice(&[_value.to_u8()]);
                     self.index += 1;
-                },
+                }
                 PropertyPayload::OpacityLayer(_value) => {
-                    self.data.extend_from_slice(&[_value.r(), _value.g(), _value.b(), _value.a()]);
+                    self.data
+                        .extend_from_slice(&[_value.r(), _value.g(), _value.b(), _value.a()]);
                     self.index += 4;
-                },
+                }
                 PropertyPayload::FloatOpacityLayer() => {
                     // TODO : à améliorer, ça doit être une valeur en float
                     let float_slice = [63, 128, 0, 0];
                     self.data.extend_from_slice(&float_slice); // prop float opacity value
                     self.index += 4;
-                },
+                }
                 PropertyPayload::VisibleLayer() => {
                     let float_slice = [0, 0, 0, 1];
                     self.data.extend_from_slice(&float_slice); // prop visible value
                     self.index += 4;
-                },
+                }
                 PropertyPayload::OffsetsLayer(_offset_x, _offset_y) => {
                     self.extend_u32(*_offset_x);
                     self.extend_u32(*_offset_y);
-                },
+                }
                 PropertyPayload::LinkedLayer(_value)
                 | PropertyPayload::ColorTagLayer(_value)
                 | PropertyPayload::LockContentLayer(_value)
@@ -228,14 +240,13 @@ impl XcfCreator {
                 | PropertyPayload::BlendSpaceLayer(_value)
                 | PropertyPayload::CompositeSpaceLayer(_value)
                 | PropertyPayload::CompositeModeLayer(_value)
-                | PropertyPayload::Tatoo(_value)  => {
+                | PropertyPayload::Tatoo(_value) => {
                     self.extend_u32(*_value);
-                },
+                }
                 _ => {}
             }
         }
         if self.version > 10 && layers_properties.iter().len() == 0 {
-            
             // active
             self.extend_u32(PropertyIdentifier::PropActiveLayer as u32);
             self.extend_u32(0);
@@ -331,8 +342,8 @@ impl XcfCreator {
         self.prop_end();
     }
 
-    fn _add_layers_v10(&mut self, _layers: &Vec<Layer>) {
-        let mut intermediate_buf = vec!();
+    fn _add_layers_v10(&mut self, _layers: &[Layer]) {
+        let mut intermediate_buf = vec![];
         let mut layer_offset_zero_index = 0;
 
         self.buf_extend_u32(&mut intermediate_buf, &mut layer_offset_zero_index, 0); // layer_offset[n] : 0 = end
@@ -340,52 +351,55 @@ impl XcfCreator {
 
         self.index += layer_offset_zero_index as u64;
 
-        let mut layer_offset_one_buf = vec!();
+        let mut layer_offset_one_buf = vec![];
         let mut layer_offset_one_index = 0;
 
-        self.buf_extend_u32( &mut layer_offset_one_buf, &mut layer_offset_one_index, self.index as u32 + 4); // layer_offset[0] = le pointer du calque
+        self.buf_extend_u32(
+            &mut layer_offset_one_buf,
+            &mut layer_offset_one_index,
+            self.index as u32 + 4,
+        ); // layer_offset[0] = le pointer du calque
 
         layer_offset_one_buf.extend_from_slice(&intermediate_buf);
         self.data.extend_from_slice(&layer_offset_one_buf);
         self.index += layer_offset_one_index as u64;
-    
+
         self.extend_u32(1); // layer[0] : width=1
         self.extend_u32(1); // layer[0] : height=1
         self.extend_u32(0); // layer[0] : type=RGB
-    
+
         // layer name :
         self.gimp_string(b"Background");
-    
+
         self.extend_u32(PropertyIdentifier::PropActiveLayer as u32); // prop = 2 : active layer
         self.extend_u32(0);
-    
+
         self.extend_u32(PropertyIdentifier::PropOpacity as u32); // prop : opacity
         self.extend_u32(4); // prop opacity size
         self.extend_u32(RgbaPixel::new(0, 0, 0, 255).to_u32()); // color of opacity = black
-    
+
         self.extend_u32(PropertyIdentifier::PropMode as u32); // prop : Mode
         self.extend_u32(4); // prop mode size
         self.extend_u32(0); // prop mode=normal
-    
+
         // TODO : à améliorer, ça doit être une valeur en float
         self.extend_u32(PropertyIdentifier::PropFloatOpacity as u32); // prop : float opacity
         self.extend_u32(4); // prop float opacity size
         let float_slice = [63, 128, 0, 0];
         self.data.extend_from_slice(&float_slice); // prop float opacity value
         self.index += 4;
-    
+
         self.extend_u32(PropertyIdentifier::PropVisible as u32); // prop : visible
         self.extend_u32(4); // prop visible size
         let float_slice = [0, 0, 0, 1];
         self.data.extend_from_slice(&float_slice); // prop visible value
         self.index += 4;
-    
+
         self.extend_u32(PropertyIdentifier::PropLinked as u32); // prop : linked
         self.extend_u32(4); // prop linked size
         self.extend_u32(0); // prop linked value
-    
-        self.prop_end();
 
+        self.prop_end();
 
         // hierarchy offset
         self.extend_u32(self.index as u32 + 8);
@@ -420,18 +434,18 @@ impl XcfCreator {
         }
 
         // Each layers is 8 bits + 8 bits for close layers + 8 bits for close channels
-        let layer_index = self.index + layers.iter().count() as u64 * 8 + 16;
+        let layer_index = self.index + layers.len() as u64 * 8 + 16;
         self.extend_u64(layer_index);
         self.extend_u64(0); // layer_offset[1] = 0
         self.extend_u64(0); // channel_offset[0] = 0
-        
+
         for layer in layers {
             self.extend_u32(layer.width);
             self.extend_u32(layer.height);
             self.extend_u32(layer.kind.kind.clone() as u32);
 
             // layer name
-            let str_count = layer.name.as_bytes().len() as u32 + 1;
+            let str_count = layer.name.len() as u32 + 1;
             self.extend_u32(str_count);
             self.data.extend_from_slice(layer.name.as_bytes());
             self.data.extend_from_slice(&[0]);
@@ -441,45 +455,61 @@ impl XcfCreator {
             self._add_layers_properties(&layer.properties);
 
             // hierarchy offset
-    
-            self.extend_u64(self.index as u64 + 16);
+
+            self.extend_u64(self.index + 16);
             self.extend_u64(0); // layer mask offset
-    
+
             // https://testing.developer.gimp.org/core/standards/xcf/#the-hierarchy-structure
             self.extend_u32(layer.pixels.width); // width=1
             self.extend_u32(layer.pixels.height); // height=1
             self.extend_u32(3); // bpp=3 : RGB color without alpha in 8-bit precision
-    
-            self.extend_u64(self.index as u64 + 16); // offset[0]
+
+            self.extend_u64(self.index + 16); // offset[0]
             self.extend_u64(0);
-    
+
             self.extend_u32(layer.pixels.width); // level[0] width =1
             self.extend_u32(layer.pixels.height); // level[0] height =1
-    
+
             self.extend_u32(0); // ptr : Pointer to tile data
 
             if self.compression == XcfCompression::Rle {
                 self.extend_u32(self.index as u32 + 12);
-                let slice = [
-                    0, 0, 0, 0,
-                    0, 0, 0, 0
-                ];
+                let slice = [0, 0, 0, 0, 0, 0, 0, 0];
                 self.data.extend_from_slice(&slice);
 
-                
-                let mut buffer_r = vec!();
-                let mut buffer_g = vec!();
-                let mut buffer_b = vec!();
+                let nb_of_pixels = layer.pixels.pixels.iter().len() as u32;
+                let nb_pixels_of_layers = layer.pixels.width * layer.pixels.height;
+                if nb_pixels_of_layers != nb_of_pixels {
+                    panic!(
+                        "Number of pixels on the layers {} and pixels {} aren't equals",
+                        nb_pixels_of_layers, nb_of_pixels
+                    );
+                }
+
+                let mut buffer_r = vec![];
+                let mut buffer_g = vec![];
+                let mut buffer_b = vec![];
                 for pixel in &layer.pixels.pixels {
                     buffer_r.push(pixel.r());
                     buffer_g.push(pixel.g());
                     buffer_b.push(pixel.b());
                 }
-                let mut buffer = vec!();
+                let mut buffer = vec![];
+
+                /*
+                println!("buffer_r {:?}", &buffer_r);
+                println!("rle_r {:?}", rle_compress(&buffer_r));
+                println!("buffer_g {:?}", &buffer_g);
+                println!("rle_g {:?}", rle_compress(&buffer_g));
+                println!("buffer_b {:?}", &buffer_b);
+                println!("rle_b {:?}", rle_compress(&buffer_b));
+                */
 
                 buffer.extend(rle_compress(&buffer_r));
                 buffer.extend(rle_compress(&buffer_g));
                 buffer.extend(rle_compress(&buffer_b));
+
+                //println!("buffer {:?}", rle_compress(&buffer));
                 self.data.extend_from_slice(&buffer);
             } else {
                 panic!("not implemented");
@@ -490,34 +520,44 @@ impl XcfCreator {
 
 // https://testing.developer.gimp.org/core/standards/xcf/#rle-compressed-tile-data
 pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
-    let mut compress_data = vec!();
+    let mut compress_data = vec![];
     let mut last_byte = None;
     let mut short_identical_len = 0;
-    let mut short_diff_len = 255;
-    let mut verbatim = vec!();
+    let mut verbatim = vec![];
+    let mut count = 0;
     for byte in data {
+        count += 1;
+        //let verbatim_len = verbatim.iter().len();
         if let Some(val) = last_byte {
             if *byte == val {
-                if short_diff_len < 254 {
-                    compress_data.push(short_diff_len - 2);
+                /*
+                if short_identical_len > 1 && verbatim_len > 0 {
+                    compress_data.push((256 - verbatim_len) as u8);
                     compress_data.extend_from_slice(&verbatim);
-                    verbatim = vec!();
+                    verbatim = vec![];
                 }
-                short_diff_len = 255;
+                */
+                verbatim.push(val);
                 short_identical_len += 1;
                 continue;
             }
         }
-        if short_identical_len > 0 {
-            compress_data.pop();
-            compress_data.push(short_identical_len);
+        if count == 3 && short_identical_len + 2 == count {
+            compress_data.push(short_identical_len as u8);
             compress_data.push(last_byte.unwrap());
+            verbatim = vec![];
         }
-        short_diff_len -= 1;
+        /*
+        if short_identical_len > 0 && (verbatim_len - short_identical_len) > 2 {
+            println!("pop {:?} <=> {:?}", verbatim, compress_data);
+            //compress_data.pop();
+            compress_data.push(short_identical_len as u8);
+            compress_data.push(last_byte.unwrap());
+            verbatim = vec![];
+        }
+        */
         short_identical_len = 0;
-        if last_byte == None || short_diff_len < 254 {
-            verbatim.push(*byte);
-        }
+        verbatim.push(*byte);
         last_byte = Some(*byte);
     }
 
@@ -525,9 +565,9 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         if verbatim.iter().len() == 1 {
             compress_data.push(0);
         } else {
-            compress_data.push(short_diff_len + 1);
+            compress_data.push((256 - verbatim.iter().len()) as u8);
         }
         compress_data.extend_from_slice(&verbatim);
     }
-    return compress_data;
+    compress_data
 }

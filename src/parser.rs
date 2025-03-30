@@ -1,16 +1,17 @@
-
 use std::io::{Read, Seek, SeekFrom};
 
 use byteorder::{BigEndian, ReadBytesExt};
 
-use crate::TileCursor;
 use crate::data::error::Error;
 use crate::data::pixeldata::PixelData;
-use crate::data::version::Version;
 use crate::data::rgba::RgbaPixel;
+use crate::data::version::Version;
+use crate::TileCursor;
 
 pub trait ParseVersion {
-    fn parse<R: Read>(rdr: R) -> Result<Self, Error> where Self: Sized;
+    fn parse<R: Read>(rdr: R) -> Result<Self, Error>
+    where
+        Self: Sized;
 }
 
 impl ParseVersion for Version {
@@ -32,7 +33,10 @@ impl ParseVersion for Version {
 impl PixelData {
     /// Parses the (silly?) hierarchy structure in the xcf file into a pixel array
     /// Makes lots of assumptions! Only supports RGBA for now.
-    pub fn parse_hierarchy<R: Read + Seek>(mut rdr: R, version: Version) -> Result<PixelData, Error> {
+    pub fn parse_hierarchy<R: Read + Seek>(
+        mut rdr: R,
+        version: Version,
+    ) -> Result<PixelData, Error> {
         // read the hierarchy
         let width = rdr.read_u32::<BigEndian>()?;
         let height = rdr.read_u32::<BigEndian>()?;

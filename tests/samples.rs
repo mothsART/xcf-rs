@@ -1,4 +1,3 @@
-
 use xcf::data::{error::Error, xcf::Xcf};
 
 #[test]
