@@ -39,6 +39,14 @@ impl XcfCreator {
         *index += size as u32;
     }
 
+    fn buf_extend_u64(&mut self, data: &mut Vec<u8>, index: &mut u32, value: u64) {
+        let size = 8;
+        let mut width_buf = vec![0; size];
+        BigEndian::write_u64(&mut width_buf, value);
+        data.extend_from_slice(&mut width_buf);
+        *index += size as u32;
+    }
+
     fn create_signature(&mut self, gimp_version: u16) {
         let mut signature = format!("gimp xcf v{:03}\0", gimp_version);
         if gimp_version == 1 {
@@ -48,12 +56,20 @@ impl XcfCreator {
         self.index += 14;
     }
 
-    fn gimp_string(&mut self, str: &[u8]) {
+    fn v10_gimp_string(&mut self, data: &mut Vec<u8>, index: &mut u32, str: &[u8]) {
         let str_count = str.len() as u32;
-        self.extend_u32(str_count + 4);
-        self.data.extend_from_slice(str);
-        self.index += str_count as u64;
-        self.extend_u32(0);
+        self.buf_extend_u32(data, index, str_count + 4);
+        data.extend_from_slice(str);
+        *index += str_count;
+        self.buf_extend_u32(data, index, 0);
+    }
+
+    fn gimp_string(&mut self, data: &mut Vec<u8>, index: &mut u32, str: &[u8]) {
+        let str_count = str.len() as u32 + 1;
+        self.buf_extend_u32(data, index, str_count);
+        data.extend_from_slice(str);
+        data.extend_from_slice(&[0]);
+        *index += str_count;
     }
 
     pub fn new(version: u16, width: u32, height: u32, color_type: ColorType) -> Self {
@@ -78,8 +94,10 @@ impl XcfCreator {
         _self
     }
 
-    fn prop_end(&mut self) {
-        self.extend_u64(0); // prop : End + size : 0
+    fn prop_end(&mut self, data: &mut Vec<u8>, index: &mut u32) {
+        self.buf_extend_u32(data, index, 0);
+        self.buf_extend_u32(data, index, 0);
+        //self.extend_u64(0); // prop : End + size : 0
     }
 
     pub fn add_properties(&mut self, properties: &Vec<Property>) {
@@ -196,37 +214,39 @@ impl XcfCreator {
             self.index += 176;
         }
 
-        self.prop_end();
+        // TODO : replace by : self.propend()
+        self.extend_u32(0);
+        self.extend_u32(0);
     }
 
-    fn _add_layers_properties(&mut self, layers_properties: &Vec<Property>) {
+    fn _add_layers_properties(&mut self, data: &mut Vec<u8>, index: &mut u32, layers_properties: &Vec<Property>) {
         for layer_property in layers_properties {
-            self.extend_u32(layer_property.kind as u32);
-            self.extend_u32(layer_property.length as u32); // size
+            self.buf_extend_u32(data, index, layer_property.kind as u32);
+            self.buf_extend_u32(data, index, layer_property.length as u32); // size
             match &layer_property.payload {
                 PropertyPayload::Compression(_value) => {
-                    self.data.extend_from_slice(&[_value.to_u8()]);
-                    self.index += 1;
+                    data.extend_from_slice(&[_value.to_u8()]);
+                    *index += 1;
                 }
                 PropertyPayload::OpacityLayer(_value) => {
-                    self.data
+                    data
                         .extend_from_slice(&[_value.r(), _value.g(), _value.b(), _value.a()]);
-                    self.index += 4;
+                    *index += 4;
                 }
                 PropertyPayload::FloatOpacityLayer() => {
                     // TODO : à améliorer, ça doit être une valeur en float
                     let float_slice = [63, 128, 0, 0];
-                    self.data.extend_from_slice(&float_slice); // prop float opacity value
-                    self.index += 4;
+                    data.extend_from_slice(&float_slice); // prop float opacity value
+                    *index += 4;
                 }
                 PropertyPayload::VisibleLayer() => {
                     let float_slice = [0, 0, 0, 1];
-                    self.data.extend_from_slice(&float_slice); // prop visible value
-                    self.index += 4;
+                    data.extend_from_slice(&float_slice); // prop visible value
+                    *index += 4;
                 }
                 PropertyPayload::OffsetsLayer(_offset_x, _offset_y) => {
-                    self.extend_u32(*_offset_x);
-                    self.extend_u32(*_offset_y);
+                    self.buf_extend_u32(data, index, *_offset_x);
+                    self.buf_extend_u32(data, index, *_offset_y);
                 }
                 PropertyPayload::LinkedLayer(_value)
                 | PropertyPayload::ColorTagLayer(_value)
@@ -241,105 +261,105 @@ impl XcfCreator {
                 | PropertyPayload::CompositeSpaceLayer(_value)
                 | PropertyPayload::CompositeModeLayer(_value)
                 | PropertyPayload::Tatoo(_value) => {
-                    self.extend_u32(*_value);
+                    self.buf_extend_u32(data, index, *_value);
                 }
                 _ => {}
             }
         }
         if self.version > 10 && layers_properties.iter().len() == 0 {
             // active
-            self.extend_u32(PropertyIdentifier::PropActiveLayer as u32);
-            self.extend_u32(0);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropActiveLayer as u32);
+            self.buf_extend_u32(data, index, 0);
             // opacity
-            self.extend_u32(PropertyIdentifier::PropOpacity as u32);
-            self.extend_u32(4);
-            self.data.extend_from_slice(&[0, 0, 0, 255]);
-            self.index += 4;
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropOpacity as u32);
+            self.buf_extend_u32(data, index, 4);
+            data.extend_from_slice(&[0, 0, 0, 255]);
+            *index += 4;
             // float opacity
-            self.extend_u32(PropertyIdentifier::PropFloatOpacity as u32);
-            self.extend_u32(4);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropFloatOpacity as u32);
+            self.buf_extend_u32(data, index, 4);
             let float_slice = [63, 128, 0, 0];
-            self.data.extend_from_slice(&float_slice); // prop float opacity value
-            self.index += 4;
+            data.extend_from_slice(&float_slice); // prop float opacity value
+            *index += 4;
             // visible
-            self.extend_u32(PropertyIdentifier::PropVisible as u32);
-            self.extend_u32(4);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropVisible as u32);
+            self.buf_extend_u32(data, index, 4);
             let float_slice = [0, 0, 0, 1];
-            self.data.extend_from_slice(&float_slice); // prop visible value
-            self.index += 4;
+            data.extend_from_slice(&float_slice); // prop visible value
+            *index += 4;
 
             // linked
-            self.extend_u32(PropertyIdentifier::PropLinked as u32);
-            self.extend_u32(4);
-            self.extend_u32(0);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropLinked as u32);
+            self.buf_extend_u32(data, index, 4);
+            self.buf_extend_u32(data, index, 0);
 
             // color tag
-            self.extend_u32(PropertyIdentifier::PropColorTag as u32);
-            self.extend_u32(4);
-            self.extend_u32(0);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropColorTag as u32);
+            self.buf_extend_u32(data, index, 4);
+            self.buf_extend_u32(data, index, 0);
 
             // lock content
-            self.extend_u32(PropertyIdentifier::PropLockContent as u32);
-            self.extend_u32(4);
-            self.extend_u32(0);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropLockContent as u32);
+            self.buf_extend_u32(data, index, 4);
+            self.buf_extend_u32(data, index, 0);
 
             // lock alpha
-            self.extend_u32(PropertyIdentifier::PropLockAlpha as u32);
-            self.extend_u32(4);
-            self.extend_u32(0);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropLockAlpha as u32);
+            self.buf_extend_u32(data, index, 4);
+            self.buf_extend_u32(data, index, 0);
 
             // lock position
-            self.extend_u32(PropertyIdentifier::PropLockPosition as u32);
-            self.extend_u32(4);
-            self.extend_u32(0);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropLockPosition as u32);
+            self.buf_extend_u32(data, index, 4);
+            self.buf_extend_u32(data, index, 0);
 
             // apply mask
-            self.extend_u32(PropertyIdentifier::PropApplyMask as u32);
-            self.extend_u32(4);
-            self.extend_u32(0);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropApplyMask as u32);
+            self.buf_extend_u32(data, index, 4);
+            self.buf_extend_u32(data, index, 0);
 
             // edit mask
-            self.extend_u32(PropertyIdentifier::PropEditMask as u32);
-            self.extend_u32(4);
-            self.extend_u32(0);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropEditMask as u32);
+            self.buf_extend_u32(data, index, 4);
+            self.buf_extend_u32(data, index, 0);
 
             // show mask
-            self.extend_u32(PropertyIdentifier::PropShowMask as u32);
-            self.extend_u32(4);
-            self.extend_u32(0);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropShowMask as u32);
+            self.buf_extend_u32(data, index, 4);
+            self.buf_extend_u32(data, index, 0);
 
             // offsets
-            self.extend_u32(PropertyIdentifier::PropOffsets as u32);
-            self.extend_u32(8);
-            self.extend_u32(0);
-            self.extend_u32(0);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropOffsets as u32);
+            self.buf_extend_u32(data, index, 8);
+            self.buf_extend_u32(data, index, 0);
+            self.buf_extend_u32(data, index, 0);
 
             // if version >= 11, than the layer mode must be the new normal mode (not legacy)
-            self.extend_u32(PropertyIdentifier::PropMode as u32);
-            self.extend_u32(4); // size
-            self.extend_u32(28); // mode normal after version 10
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropMode as u32);
+            self.buf_extend_u32(data, index, 4); // size
+            self.buf_extend_u32(data, index, 28); // mode normal after version 10
 
             // blend space
-            self.extend_u32(PropertyIdentifier::PropBlendSpace as u32);
-            self.extend_u32(4);
-            self.extend_u32(0);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropBlendSpace as u32);
+            self.buf_extend_u32(data, index, 4);
+            self.buf_extend_u32(data, index, 0);
 
             // composite space
-            self.extend_u32(PropertyIdentifier::PropCompositeSpace as u32);
-            self.extend_u32(4);
-            self.extend_u32(u32::MAX);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropCompositeSpace as u32);
+            self.buf_extend_u32(data, index, 4);
+            self.buf_extend_u32(data, index, u32::MAX);
 
             // composite mode
-            self.extend_u32(PropertyIdentifier::PropCompositeMode as u32);
-            self.extend_u32(4);
-            self.extend_u32(u32::MAX);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropCompositeMode as u32);
+            self.buf_extend_u32(data, index, 4);
+            self.buf_extend_u32(data, index, u32::MAX);
 
             // tatoo
-            self.extend_u32(PropertyIdentifier::PropTattoo as u32);
-            self.extend_u32(4);
-            self.extend_u32(2);
+            self.buf_extend_u32(data, index, PropertyIdentifier::PropTattoo as u32);
+            self.buf_extend_u32(data, index, 4);
+            self.buf_extend_u32(data, index, 2);
         }
-        self.prop_end();
+        self.prop_end(data, index);
     }
 
     fn _add_layers_v10(&mut self, _layers: &[Layer]) {
@@ -369,7 +389,11 @@ impl XcfCreator {
         self.extend_u32(0); // layer[0] : type=RGB
 
         // layer name :
-        self.gimp_string(b"Background");
+        let mut layer_name_data = vec!();
+        let mut layer_name_len = 0;
+        self.v10_gimp_string(&mut layer_name_data, &mut layer_name_len, b"Background");
+        self.data.extend_from_slice(&layer_name_data);
+        self.index += layer_name_len as u64;
 
         self.extend_u32(PropertyIdentifier::PropActiveLayer as u32); // prop = 2 : active layer
         self.extend_u32(0);
@@ -399,7 +423,10 @@ impl XcfCreator {
         self.extend_u32(4); // prop linked size
         self.extend_u32(0); // prop linked value
 
-        self.prop_end();
+
+        // TODO : replace by : self.propend()
+        self.extend_u32(0);
+        self.extend_u32(0);
 
         // hierarchy offset
         self.extend_u32(self.index as u32 + 8);
@@ -436,46 +463,58 @@ impl XcfCreator {
         // Each layers is 8 bits + 8 bits for close layers + 8 bits for close channels
         let layer_index = self.index + layers.len() as u64 * 8 + 16;
         self.extend_u64(layer_index);
+        //for layer in layers {
+        //    let layer_index = self.index + layers.len() as u64 * 8 + 16 + content_lenght;
+        //    self.extend_u64(layer_index);
+        //    
+        //    content_lenght += 4; // length of width
+        //    content_lenght += 8; // length of height
+        //}
+
         self.extend_u64(0); // layer_offset[1] = 0
         self.extend_u64(0); // channel_offset[0] = 0
 
         for layer in layers {
-            self.extend_u32(layer.width);
-            self.extend_u32(layer.height);
-            self.extend_u32(layer.kind.kind.clone() as u32);
+            let mut layer_data = vec!();
+            let mut layer_len = 0;
 
+            self.buf_extend_u32(&mut layer_data, &mut layer_len, layer.width);
+            self.buf_extend_u32(&mut layer_data, &mut layer_len, layer.height);
+            self.buf_extend_u32(&mut layer_data, &mut layer_len, layer.kind.kind.clone() as u32);
+            
             // layer name
-            let str_count = layer.name.len() as u32 + 1;
-            self.extend_u32(str_count);
-            self.data.extend_from_slice(layer.name.as_bytes());
-            self.data.extend_from_slice(&[0]);
-            self.index += str_count as u64;
+            self.gimp_string(&mut layer_data, &mut layer_len, layer.name.as_bytes());           
+
+            println!("layer len {}", layer_len);
 
             // layer properties
-            self._add_layers_properties(&layer.properties);
+            self._add_layers_properties(&mut layer_data, &mut layer_len, &layer.properties);
 
             // hierarchy offset
+            let hierarchy_index = self.index + layer_len as u64 + 16;
+            self.buf_extend_u64(&mut layer_data, &mut layer_len, hierarchy_index);
 
-            self.extend_u64(self.index + 16);
-            self.extend_u64(0); // layer mask offset
+            self.buf_extend_u64(&mut layer_data, &mut layer_len,0); // layer mask offset
 
             // https://testing.developer.gimp.org/core/standards/xcf/#the-hierarchy-structure
-            self.extend_u32(layer.pixels.width); // width=1
-            self.extend_u32(layer.pixels.height); // height=1
-            self.extend_u32(3); // bpp=3 : RGB color without alpha in 8-bit precision
+            self.buf_extend_u32(&mut layer_data, &mut layer_len,layer.pixels.width); // width=1
+            self.buf_extend_u32(&mut layer_data, &mut layer_len,layer.pixels.height); // height=1
+            self.buf_extend_u32(&mut layer_data, &mut layer_len,3); // bpp=3 : RGB color without alpha in 8-bit precision
 
-            self.extend_u64(self.index + 16); // offset[0]
-            self.extend_u64(0);
+            let offset_index = self.index + layer_len as u64 + 16;
+            self.buf_extend_u64(&mut layer_data, &mut layer_len,offset_index); // offset[0]
+            self.buf_extend_u64(&mut layer_data, &mut layer_len,0);
 
-            self.extend_u32(layer.pixels.width); // level[0] width =1
-            self.extend_u32(layer.pixels.height); // level[0] height =1
+            self.buf_extend_u32(&mut layer_data, &mut layer_len,layer.pixels.width); // level[0] width =1
+            self.buf_extend_u32(&mut layer_data, &mut layer_len,layer.pixels.height); // level[0] height =1
 
-            self.extend_u32(0); // ptr : Pointer to tile data
+            self.buf_extend_u32(&mut layer_data, &mut layer_len,0); // ptr : Pointer to tile data
 
             if self.compression == XcfCompression::Rle {
-                self.extend_u32(self.index as u32 + 12);
-                let slice = [0, 0, 0, 0, 0, 0, 0, 0];
-                self.data.extend_from_slice(&slice);
+                let pixels_index = self.index as u32 + layer_len + 12;
+                self.buf_extend_u32(&mut layer_data, &mut layer_len, pixels_index);
+
+                layer_data.extend_from_slice(&[0, 0, 0, 0, 0, 0, 0, 0]);
 
                 let nb_of_pixels = layer.pixels.pixels.iter().len() as u32;
                 let nb_pixels_of_layers = layer.pixels.width * layer.pixels.height;
@@ -509,8 +548,9 @@ impl XcfCreator {
                 buffer.extend(rle_compress(&buffer_g));
                 buffer.extend(rle_compress(&buffer_b));
 
-                //println!("buffer {:?}", rle_compress(&buffer));
-                self.data.extend_from_slice(&buffer);
+                layer_data.extend_from_slice(&buffer);
+                self.data.extend_from_slice(&layer_data);
+                self.index += layer_len as u64;
             } else {
                 panic!("not implemented");
             }
