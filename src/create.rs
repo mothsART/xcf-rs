@@ -72,6 +72,21 @@ impl XcfCreator {
         *index += str_count;
     }
 
+    fn parasite_prop(&mut self, data: &mut Vec<u8>, index: &mut u32, parasite_title: &str, parasite_data: &str, flags: u32) {
+        let title_len = parasite_title.len() + 1;
+        self.buf_extend_u32(data, index, title_len as u32);
+        data.extend_from_slice(parasite_title.as_bytes());
+        data.extend_from_slice(&[0]);
+        *index += title_len as u32;
+        self.buf_extend_u32(data, index,flags);
+
+        let data_len = parasite_data.len() + 1;
+        self.buf_extend_u32(data, index,data_len as u32);
+        data.extend_from_slice(parasite_data.as_bytes());
+        data.extend_from_slice(&[0]);
+        *index += data_len as u32;
+    }
+
     pub fn new(version: u16, width: u32, height: u32, color_type: ColorType) -> Self {
         let data = vec![];
         let index = 0;
@@ -125,38 +140,20 @@ impl XcfCreator {
                     self.extend_u32(*_value);
                 }
                 PropertyPayload::Parasites(_parasites) => {
-                    let mut size: u32 = 0;
+                    let mut parasite_prop_buf = vec![];
+                    let mut parasite_prop_len = 0;
                     for parasite in _parasites {
-                        size += parasite.name.as_bytes().to_vec().len() as u32;
-                        size += parasite.data.as_bytes().to_vec().len() as u32;
-                        size += 14;
+                        self.parasite_prop(
+                            &mut parasite_prop_buf, 
+                            &mut parasite_prop_len, 
+                            &parasite.name,
+                            &parasite.data,
+                            parasite.flags
+                        );
                     }
-                    self.extend_u32(size); // size
-
-                    for parasite in _parasites {
-                        self.data.extend_from_slice(&[
-                            0,
-                            0,
-                            0,
-                            parasite.name.as_bytes().to_vec().len() as u8 + 1,
-                        ]);
-                        self.data
-                            .extend_from_slice(parasite.name.as_bytes());
-                        self.data.extend_from_slice(&[0]);
-                        self.index += parasite.name.as_bytes().to_vec().len() as u64 + 5;
-                        self.extend_u32(parasite.flags);
-
-                        self.data.extend_from_slice(&[
-                            0,
-                            0,
-                            0,
-                            parasite.data.as_bytes().to_vec().len() as u8 + 1,
-                        ]);
-                        self.data
-                            .extend_from_slice(parasite.data.as_bytes());
-                        self.data.extend_from_slice(&[0]);
-                        self.index += parasite.data.as_bytes().to_vec().len() as u64 + 5;
-                    }
+                    self.extend_u32(parasite_prop_len); // size
+                    self.data.extend_from_slice(&parasite_prop_buf);
+                    self.index += parasite_prop_len as u64;
                 }
                 _ => {
                     self.extend_u32(property.length as u32); // size
@@ -195,52 +192,25 @@ impl XcfCreator {
                 &mut parasite_prop_len, 
                 "gimp-comment", 
                 //"Created with GIMP"
-                "Test Comment"
+                "Test Comment",
+                1
             );
             self.parasite_prop(
                 &mut parasite_prop_buf, 
                 &mut parasite_prop_len, 
                 "gimp-image-grid", 
-                "(style solid)\n(fgcolor (color-rgba 0 0 0 1))\n(bgcolor (color-rgba 1 1 1 1))\n(xspacing 10)\n(yspacing 10)\n(spacing-unit inches)\n(xoffset 0)\n(yoffset 0)\n(offset-unit inches)\n"
+                "(style solid)\n(fgcolor (color-rgba 0 0 0 1))\n(bgcolor (color-rgba 1 1 1 1))\n(xspacing 10)\n(yspacing 10)\n(spacing-unit inches)\n(xoffset 0)\n(yoffset 0)\n(offset-unit inches)\n",
+                1
             );
             self.extend_u32(PropertyIdentifier::PropParasites as u32);
             self.extend_u32(parasite_prop_len); // size
             self.data.extend_from_slice(&parasite_prop_buf);
             self.index += parasite_prop_len as u64;
-
-            /*
-            self.data.extend_from_slice(&[0, 0, 0, 16]);
-            self.data.extend_from_slice(b"gimp-image-grid");
-            self.data.extend_from_slice(&[0]);
-            self.index += 20;
-            self.extend_u32(1);
-
-            self.data.extend_from_slice(&[0, 0, 0, 172]);
-            self.data.extend_from_slice(b"(style solid)\n(fgcolor (color-rgba 0 0 0 1))\n(bgcolor (color-rgba 1 1 1 1))\n(xspacing 10)\n(yspacing 10)\n(spacing-unit inches)\n(xoffset 0)\n(yoffset 0)\n(offset-unit inches)\n");
-            self.data.extend_from_slice(&[0]);
-            self.index += 176;
-            */
         }
 
         // TODO : replace by : self.propend()
         self.extend_u32(0);
         self.extend_u32(0);
-    }
-
-    fn parasite_prop(&mut self, data: &mut Vec<u8>, index: &mut u32, parasite_title: &str, parasite_data: &str) {
-        let title_len = parasite_title.len() + 1;
-        println!("~~~~~ {}", title_len);
-        self.buf_extend_u32(data, index, title_len as u32);
-        data.extend_from_slice(parasite_title.as_bytes());
-        data.extend_from_slice(&[0]);
-        *index += title_len as u32;
-        self.buf_extend_u32(data, index,1);
-
-        let data_len = parasite_data.len() + 1;
-        self.buf_extend_u32(data, index,data_len as u32);
-        data.extend_from_slice(parasite_data.as_bytes());
-        data.extend_from_slice(&[0]);
-        *index += data_len as u32;
     }
 
     fn _add_layers_properties(&mut self, data: &mut Vec<u8>, index: &mut u32, layers_properties: &Vec<Property>) {
