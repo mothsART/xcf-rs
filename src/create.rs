@@ -459,63 +459,61 @@ impl XcfCreator {
             self._add_layers_v10(layers);
             return;
         }
+        let nb_layers = layers.iter().len();
 
-        // Each layers is 8 bits + 8 bits for close layers + 8 bits for close channels
-        let layer_index = self.index + layers.len() as u64 * 8 + 16;
-        self.extend_u64(layer_index);
-        //for layer in layers {
-        //    let layer_index = self.index + layers.len() as u64 * 8 + 16 + content_lenght;
-        //    self.extend_u64(layer_index);
-        //    
-        //    content_lenght += 4; // length of width
-        //    content_lenght += 8; // length of height
-        //}
-
-        self.extend_u64(0); // layer_offset[1] = 0
-        self.extend_u64(0); // channel_offset[0] = 0
-
+        let mut layer_data = vec!();
+        let mut layer_len = 0;
+        let mut index = 0;
         for layer in layers {
-            let mut layer_data = vec!();
-            let mut layer_len = 0;
+            index += 1;
+
+            // Each layers is 8 bits + 8 bits for close layers + 8 bits for close channels
+            self.extend_u64(self.index + (nb_layers as u64 - index + 1) * 8 + 8 + layer_len as u64 + 8); // layer_offset[index -1]
 
             self.buf_extend_u32(&mut layer_data, &mut layer_len, layer.width);
             self.buf_extend_u32(&mut layer_data, &mut layer_len, layer.height);
             self.buf_extend_u32(&mut layer_data, &mut layer_len, layer.kind.kind.clone() as u32);
-            
+
             // layer name
-            self.gimp_string(&mut layer_data, &mut layer_len, layer.name.as_bytes());           
-
-            println!("layer len {}", layer_len);
-
+            self.gimp_string(&mut layer_data, &mut layer_len, layer.name.as_bytes());
             // layer properties
             self._add_layers_properties(&mut layer_data, &mut layer_len, &layer.properties);
 
-            // hierarchy offset
-            let hierarchy_index = self.index + layer_len as u64 + 16;
-            self.buf_extend_u64(&mut layer_data, &mut layer_len, hierarchy_index);
-
-            self.buf_extend_u64(&mut layer_data, &mut layer_len,0); // layer mask offset
-
+            let mut hierarchy_data = vec![];
+            let mut hierarchy_len = 0;
             // https://testing.developer.gimp.org/core/standards/xcf/#the-hierarchy-structure
-            self.buf_extend_u32(&mut layer_data, &mut layer_len,layer.pixels.width); // width=1
-            self.buf_extend_u32(&mut layer_data, &mut layer_len,layer.pixels.height); // height=1
-            self.buf_extend_u32(&mut layer_data, &mut layer_len,3); // bpp=3 : RGB color without alpha in 8-bit precision
+            self.buf_extend_u32(&mut hierarchy_data, &mut hierarchy_len,layer.pixels.width); // width=1
+            self.buf_extend_u32(&mut hierarchy_data, &mut hierarchy_len,layer.pixels.height); // height=1
+            self.buf_extend_u32(&mut hierarchy_data, &mut hierarchy_len,3); // bpp=3 : RGB color without alpha in 8-bit precision
 
-            let offset_index = self.index + layer_len as u64 + 16;
-            self.buf_extend_u64(&mut layer_data, &mut layer_len,offset_index); // offset[0]
-            self.buf_extend_u64(&mut layer_data, &mut layer_len,0);
+            let mut offset_data = vec![];
+            let mut offset_len = 0;
+            self.buf_extend_u32(&mut offset_data, &mut offset_len,layer.pixels.width); // level[0] width
+            self.buf_extend_u32(&mut offset_data, &mut offset_len,layer.pixels.height); // level[0] height
+            self.buf_extend_u32(&mut offset_data, &mut offset_len,0); // ptr : Pointer to tile data
 
-            self.buf_extend_u32(&mut layer_data, &mut layer_len,layer.pixels.width); // level[0] width =1
-            self.buf_extend_u32(&mut layer_data, &mut layer_len,layer.pixels.height); // level[0] height =1
+            let mut offset_index = self.index + (nb_layers as u64 - index + 1) * 8 + 8 + layer_len as u64 + hierarchy_len as u64 + 32;
+            if index != 1 {
+                offset_index = 963;
+            }
+            println!("offset[0] : {} => index {}, nb_layer {}, layer_len {}, hierarchy_len {}", offset_index, self.index, nb_layers, layer_len, hierarchy_len);
+            self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, offset_index); // offset[0]
+            self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len,0); // offset[1]
+            hierarchy_data.extend_from_slice(&offset_data);
+            hierarchy_len += offset_len;
 
-            self.buf_extend_u32(&mut layer_data, &mut layer_len,0); // ptr : Pointer to tile data
+            // hierarchy offset
+            let hierarchy_index = self.index + layer_len as u64 + 32;
+            self.buf_extend_u64(&mut layer_data, &mut layer_len, hierarchy_index); // hierarchy_ofs=
+            self.buf_extend_u64(&mut layer_data, &mut layer_len,0); // layer mask offset
+            layer_data.extend_from_slice(&hierarchy_data);
+            layer_len += hierarchy_len;
 
             if self.compression == XcfCompression::Rle {
-                let pixels_index = self.index as u32 + layer_len + 12;
-                self.buf_extend_u32(&mut layer_data, &mut layer_len, pixels_index);
-
+                let pixels_index = self.index + (nb_layers as u64 - index + 1) * 8 + 8 + layer_len as u64 + 12;
+                println!(">>>>> pixels_index {} {} {}", self.index + (nb_layers as u64 - index + 1) * 8 + 8 , layer_len, pixels_index);
+                self.buf_extend_u32(&mut layer_data, &mut layer_len, pixels_index as u32);
                 layer_data.extend_from_slice(&[0, 0, 0, 0, 0, 0, 0, 0]);
-
                 let nb_of_pixels = layer.pixels.pixels.iter().len() as u32;
                 let nb_pixels_of_layers = layer.pixels.width * layer.pixels.height;
                 if nb_pixels_of_layers != nb_of_pixels {
@@ -524,7 +522,6 @@ impl XcfCreator {
                         nb_pixels_of_layers, nb_of_pixels
                     );
                 }
-
                 let mut buffer_r = vec![];
                 let mut buffer_g = vec![];
                 let mut buffer_b = vec![];
@@ -535,26 +532,28 @@ impl XcfCreator {
                 }
                 let mut buffer = vec![];
 
-                /*
                 println!("buffer_r {:?}", &buffer_r);
                 println!("rle_r {:?}", rle_compress(&buffer_r));
                 println!("buffer_g {:?}", &buffer_g);
                 println!("rle_g {:?}", rle_compress(&buffer_g));
                 println!("buffer_b {:?}", &buffer_b);
                 println!("rle_b {:?}", rle_compress(&buffer_b));
-                */
-
+            
                 buffer.extend(rle_compress(&buffer_r));
                 buffer.extend(rle_compress(&buffer_g));
                 buffer.extend(rle_compress(&buffer_b));
-
                 layer_data.extend_from_slice(&buffer);
-                self.data.extend_from_slice(&layer_data);
-                self.index += layer_len as u64;
+                //self.data.extend_from_slice(&layer_data);
+                //self.index += layer_len as u64;
             } else {
                 panic!("not implemented");
             }
         }
+        self.extend_u64(0); // layer_offset[1] = 0
+        self.extend_u64(0); // channel_offset[0] = 0
+        //return;
+        self.data.extend_from_slice(&layer_data);
+        self.index += layer_len as u64;
     }
 }
 
