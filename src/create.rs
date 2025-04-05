@@ -188,20 +188,27 @@ impl XcfCreator {
             self.extend_u32(1);
 
             // parasites
+            let mut parasite_prop_buf = vec![];
+            let mut parasite_prop_len = 0;
+            self.parasite_prop(
+                &mut parasite_prop_buf, 
+                &mut parasite_prop_len, 
+                "gimp-comment", 
+                //"Created with GIMP"
+                "Test Comment"
+            );
+            self.parasite_prop(
+                &mut parasite_prop_buf, 
+                &mut parasite_prop_len, 
+                "gimp-image-grid", 
+                "(style solid)\n(fgcolor (color-rgba 0 0 0 1))\n(bgcolor (color-rgba 1 1 1 1))\n(xspacing 10)\n(yspacing 10)\n(spacing-unit inches)\n(xoffset 0)\n(yoffset 0)\n(offset-unit inches)\n"
+            );
             self.extend_u32(PropertyIdentifier::PropParasites as u32);
-            self.extend_u32(238); // size
+            self.extend_u32(parasite_prop_len); // size
+            self.data.extend_from_slice(&parasite_prop_buf);
+            self.index += parasite_prop_len as u64;
 
-            self.data.extend_from_slice(&[0, 0, 0, 13]);
-            self.data.extend_from_slice(b"gimp-comment");
-            self.data.extend_from_slice(&[0]);
-            self.index += 17;
-            self.extend_u32(1);
-
-            self.data.extend_from_slice(&[0, 0, 0, 13]);
-            self.data.extend_from_slice(b"Test Comment");
-            self.data.extend_from_slice(&[0]);
-            self.index += 17;
-
+            /*
             self.data.extend_from_slice(&[0, 0, 0, 16]);
             self.data.extend_from_slice(b"gimp-image-grid");
             self.data.extend_from_slice(&[0]);
@@ -212,11 +219,28 @@ impl XcfCreator {
             self.data.extend_from_slice(b"(style solid)\n(fgcolor (color-rgba 0 0 0 1))\n(bgcolor (color-rgba 1 1 1 1))\n(xspacing 10)\n(yspacing 10)\n(spacing-unit inches)\n(xoffset 0)\n(yoffset 0)\n(offset-unit inches)\n");
             self.data.extend_from_slice(&[0]);
             self.index += 176;
+            */
         }
 
         // TODO : replace by : self.propend()
         self.extend_u32(0);
         self.extend_u32(0);
+    }
+
+    fn parasite_prop(&mut self, data: &mut Vec<u8>, index: &mut u32, parasite_title: &str, parasite_data: &str) {
+        let title_len = parasite_title.len() + 1;
+        println!("~~~~~ {}", title_len);
+        self.buf_extend_u32(data, index, title_len as u32);
+        data.extend_from_slice(parasite_title.as_bytes());
+        data.extend_from_slice(&[0]);
+        *index += title_len as u32;
+        self.buf_extend_u32(data, index,1);
+
+        let data_len = parasite_data.len() + 1;
+        self.buf_extend_u32(data, index,data_len as u32);
+        data.extend_from_slice(parasite_data.as_bytes());
+        data.extend_from_slice(&[0]);
+        *index += data_len as u32;
     }
 
     fn _add_layers_properties(&mut self, data: &mut Vec<u8>, index: &mut u32, layers_properties: &Vec<Property>) {
@@ -468,7 +492,12 @@ impl XcfCreator {
             index += 1;
 
             // Each layers is 8 bits + 8 bits for close layers + 8 bits for close channels
-            self.extend_u64(self.index + (nb_layers as u64 - index + 1) * 8 + 8 + layer_len as u64 + 8); // layer_offset[index -1]
+            let mut pos_layer = self.index + (nb_layers as u64 - index + 1) * 8 + layer_len as u64 + 16;
+            if index != 1 {
+                pos_layer = 689;
+            }
+            println!(">>>>> pos layer {}", pos_layer);
+            self.extend_u64(pos_layer); // layer_offset[index -1]
 
             self.buf_extend_u32(&mut layer_data, &mut layer_len, layer.width);
             self.buf_extend_u32(&mut layer_data, &mut layer_len, layer.height);
@@ -492,7 +521,7 @@ impl XcfCreator {
             self.buf_extend_u32(&mut offset_data, &mut offset_len,layer.pixels.height); // level[0] height
             self.buf_extend_u32(&mut offset_data, &mut offset_len,0); // ptr : Pointer to tile data
 
-            let mut offset_index = self.index + (nb_layers as u64 - index + 1) * 8 + 8 + layer_len as u64 + hierarchy_len as u64 + 32;
+            let mut offset_index = self.index + (nb_layers as u64 - index + 1) * 8 + layer_len as u64 + hierarchy_len as u64 + 40;
             if index != 1 {
                 offset_index = 963;
             }
@@ -532,19 +561,19 @@ impl XcfCreator {
                 }
                 let mut buffer = vec![];
 
+                /*
                 println!("buffer_r {:?}", &buffer_r);
                 println!("rle_r {:?}", rle_compress(&buffer_r));
                 println!("buffer_g {:?}", &buffer_g);
                 println!("rle_g {:?}", rle_compress(&buffer_g));
                 println!("buffer_b {:?}", &buffer_b);
                 println!("rle_b {:?}", rle_compress(&buffer_b));
+                */
             
                 buffer.extend(rle_compress(&buffer_r));
                 buffer.extend(rle_compress(&buffer_g));
                 buffer.extend(rle_compress(&buffer_b));
                 layer_data.extend_from_slice(&buffer);
-                //self.data.extend_from_slice(&layer_data);
-                //self.index += layer_len as u64;
             } else {
                 panic!("not implemented");
             }
