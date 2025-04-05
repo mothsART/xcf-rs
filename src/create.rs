@@ -191,7 +191,7 @@ impl XcfCreator {
                 &mut parasite_prop_buf, 
                 &mut parasite_prop_len, 
                 "gimp-comment", 
-                //"Created with GIMP"
+                //"Created with GIMP",
                 "Test Comment",
                 1
             );
@@ -463,10 +463,10 @@ impl XcfCreator {
 
             // Each layers is 8 bits + 8 bits for close layers + 8 bits for close channels
             let mut pos_layer = self.index + (nb_layers as u64 - index + 1) * 8 + layer_len as u64 + 16;
-            if index != 1 {
-                pos_layer = 689;
-            }
             println!(">>>>> pos layer {}", pos_layer);
+            if index != 1 {
+                pos_layer = 693;
+            }
             self.extend_u64(pos_layer); // layer_offset[index -1]
 
             self.buf_extend_u32(&mut layer_data, &mut layer_len, layer.width);

@@ -15,6 +15,7 @@ use xcf::{
         rgba::RgbaPixel,
     },
     LayerColorType,
+    LayerColorValue,
 };
 
 fn assert_hash(path: &'static str, expected_hash: &'static str) {
@@ -86,7 +87,7 @@ fn write_minimal_xcf11() -> Result<(), Error> {
         width: 1,
         height: 1,
         kind: LayerColorType {
-            kind: ColorType::Rgb,
+            kind: LayerColorValue::Rgb,
             alpha: true,
         },
         name: "Background".to_string(),
@@ -253,7 +254,7 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
         width: 1,
         height: 1,
         kind: LayerColorType {
-            kind: ColorType::Rgb,
+            kind: LayerColorValue::Rgb,
             alpha: true,
         },
         name: "Background".to_string(),
@@ -290,7 +291,7 @@ fn write_minimal_four_pixels() -> Result<(), Error> {
         width: 2,
         height: 2,
         kind: LayerColorType {
-            kind: ColorType::Rgb,
+            kind: LayerColorValue::Rgb,
             alpha: true,
         },
         name: "Background".to_string(),
@@ -332,7 +333,7 @@ fn write_minimal_nine_pixels() -> Result<(), Error> {
         width: 3,
         height: 3,
         kind: LayerColorType {
-            kind: ColorType::Rgb,
+            kind: LayerColorValue::Rgb,
             alpha: true,
         },
         name: "Background".to_string(),
@@ -365,7 +366,7 @@ fn write_miniminiminimal() -> Result<(), Error> {
         width: 1,
         height: 1,
         kind: LayerColorType {
-            kind: ColorType::Rgb,
+            kind: LayerColorValue::Rgba,
             alpha: true,
         },
         name: "Layer1".to_string(),
@@ -385,7 +386,7 @@ fn write_miniminiminimal() -> Result<(), Error> {
         width: 1,
         height: 1,
         kind: LayerColorType {
-            kind: ColorType::Rgb,
+            kind: LayerColorValue::Rgba,
             alpha: true,
         },
         name: "Background".to_string(),

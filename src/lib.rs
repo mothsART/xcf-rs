@@ -142,15 +142,41 @@ impl Layer {
     }
 }
 
+#[repr(u32)]
+#[derive(Debug, PartialEq, Clone)]
+pub enum LayerColorValue {
+    Rgb = 0,
+    Rgba = 1,
+    Grayscale = 2,
+    GrayscaleWithAlpha = 3,
+    Indexed = 4,
+    IndexedWithAlpha = 5
+}
+
+impl LayerColorValue {
+    pub(crate) fn new(kind: u32) -> Result<LayerColorValue, Error> {
+        use self::LayerColorValue::*;
+        Ok(match kind {
+            0 => Rgb,
+            1 => Rgba,
+            2 => Grayscale,
+            3 => GrayscaleWithAlpha,
+            4 => Indexed,
+            5 => Self::IndexedWithAlpha,
+            _ => return Err(Error::InvalidFormat),
+        })
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct LayerColorType {
-    pub kind: ColorType,
+    pub kind: LayerColorValue,
     pub alpha: bool,
 }
 
 impl LayerColorType {
     fn new(identifier: u32) -> Result<LayerColorType, Error> {
-        let kind = ColorType::new(identifier / 2)?;
+        let kind = LayerColorValue::new(identifier / 2)?;
         let alpha = identifier % 2 == 1;
         Ok(LayerColorType { alpha, kind })
     }
