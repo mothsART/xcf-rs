@@ -1,5 +1,6 @@
 use sha1::{Digest, Sha1};
-use std::fs::File;
+use std::fs::{create_dir, File};
+use std::path::{Path, PathBuf};
 use std::io::Write;
 
 use xcf_rs::create::XcfCreator;
@@ -18,7 +19,7 @@ use xcf_rs::{
     LayerColorValue,
 };
 
-fn assert_hash(path: &'static str, expected_hash: &'static str) {
+fn assert_hash(path: &str, expected_hash: &str) {
     let bytes = std::fs::read(&path).unwrap();
     let mut hasher = Sha1::new();
     hasher.update(&bytes);
@@ -26,52 +27,58 @@ fn assert_hash(path: &'static str, expected_hash: &'static str) {
     assert_eq!(expected_hash, hash);
 }
 
+fn create_file(file_name: &'static str)-> Result<(File, PathBuf), Error> {
+    let dest_dir = Path::new("tests/samples/create");
+
+    if let Err(_e) = create_dir(dest_dir) {}
+
+    let path = dest_dir.join(file_name);
+    let new_file = File::create(&path)?;
+    Ok((new_file, path))
+}
+
 #[test]
 fn write_minimal_xcf1() -> Result<(), Error> {
-    let path = "tests/samples/create/minimal_xcf1.xcf";
-    let mut minimal_xcf = File::create(path)?;
+    let mut minimal_xcf = create_file("minimal_xcf1.xcf")?;
+
     let mut xcf = XcfCreator::new(1, 1, 1, ColorType::Rgb);
     let properties = vec![];
     xcf.add_properties(&properties);
     xcf.add_layers(&vec![]);
-    minimal_xcf.write_all(xcf.data.as_slice())?;
+    minimal_xcf.0.write_all(xcf.data.as_slice())?;
 
-    assert_hash(path, "9e54fb4fc2658de528398a66cc684ada35866807");
+    assert_hash(minimal_xcf.1.to_str().expect(""), "9e54fb4fc2658de528398a66cc684ada35866807");
     Ok(())
 }
 
 #[test]
 fn write_minimal_xcf3() -> Result<(), Error> {
-    let path = "tests/samples/create/minimal_xcf3.xcf";
-    let mut minimal_xcf = File::create(path)?;
+    let mut minimal_xcf = create_file("minimal_xcf3.xcf")?;
     let mut xcf = XcfCreator::new(3, 1, 1, ColorType::Rgb);
     let properties = vec![];
     xcf.add_properties(&properties);
     xcf.add_layers(&vec![]);
-    minimal_xcf.write_all(xcf.data.as_slice())?;
-
-    assert_hash(path, "1b9d7187a9b783cd3ce16790ab1ebe7a05eac119");
+    minimal_xcf.0.write_all(xcf.data.as_slice())?;
+    assert_hash(minimal_xcf.1.to_str().expect(""), "1b9d7187a9b783cd3ce16790ab1ebe7a05eac119");
     Ok(())
 }
 
 #[test]
 fn write_minimal_xcf10() -> Result<(), Error> {
-    let path = "tests/samples/create/minimal_xcf10.xcf";
-    let mut minimal_xcf = File::create(path)?;
+    let mut minimal_xcf = create_file("minimal_xcf10.xcf")?;
     let mut xcf = XcfCreator::new(10, 1, 1, ColorType::Rgb);
     let properties = vec![];
     xcf.add_properties(&properties);
     xcf.add_layers(&vec![]);
-    minimal_xcf.write_all(xcf.data.as_slice())?;
+    minimal_xcf.0.write_all(xcf.data.as_slice())?;
 
-    assert_hash(path, "72dbe0106f48fb25d0fd047acf519f13a3dff086");
+    assert_hash(minimal_xcf.1.to_str().expect(""), "72dbe0106f48fb25d0fd047acf519f13a3dff086");
     Ok(())
 }
 
 #[test]
 fn write_minimal_xcf11() -> Result<(), Error> {
-    let path = "tests/samples/create/minimal_xcf11.xcf";
-    let mut minimal_xcf = File::create(path)?;
+    let mut minimal_xcf = create_file("minimal_xcf11.xcf")?;
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
     xcf.add_properties(&vec![]);
 
@@ -96,16 +103,15 @@ fn write_minimal_xcf11() -> Result<(), Error> {
     };
     layers.push(layer_one);
     xcf.add_layers(&layers);
-    minimal_xcf.write_all(xcf.data.as_slice())?;
+    minimal_xcf.0.write_all(xcf.data.as_slice())?;
 
-    assert_hash(path, "6d6e2decc5c6393e83c6ac255e99fdf6617c4a95");
+    assert_hash(minimal_xcf.1.to_str().expect(""), "6d6e2decc5c6393e83c6ac255e99fdf6617c4a95");
     Ok(())
 }
 
 #[test]
 fn write_minimal_xcf11_properties() -> Result<(), Error> {
-    let path = "tests/samples/create/minimal_xcf11_properties.xcf";
-    let mut minimal_xcf = File::create(path)?;
+    let mut minimal_xcf = create_file("minimal_xcf11_properties.xcf")?;
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
 
     let properties = vec![
@@ -263,16 +269,15 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
     };
     layers.push(layer_one);
     xcf.add_layers(&layers);
-    minimal_xcf.write_all(xcf.data.as_slice())?;
+    minimal_xcf.0.write_all(xcf.data.as_slice())?;
 
-    assert_hash(path, "6d6e2decc5c6393e83c6ac255e99fdf6617c4a95");
+    assert_hash(minimal_xcf.1.to_str().expect(""), "6d6e2decc5c6393e83c6ac255e99fdf6617c4a95");
     Ok(())
 }
 
 #[test]
 fn write_minimal_four_pixels() -> Result<(), Error> {
-    let path = "tests/samples/create/minimal_four_pixels.xcf";
-    let mut minimal_xcf = File::create(path)?;
+    let mut minimal_xcf = create_file("minimal_four_pixels.xcf")?;
     let mut xcf = XcfCreator::new(11, 2, 2, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];
@@ -300,16 +305,15 @@ fn write_minimal_four_pixels() -> Result<(), Error> {
     };
     layers.push(layer_one);
     xcf.add_layers(&layers);
-    minimal_xcf.write_all(xcf.data.as_slice())?;
+    minimal_xcf.0.write_all(xcf.data.as_slice())?;
 
-    assert_hash(path, "8c4c60c226cd932f4c93dff6ce9ccdc3acc7fbde");
+    assert_hash(minimal_xcf.1.to_str().expect(""), "8c4c60c226cd932f4c93dff6ce9ccdc3acc7fbde");
     Ok(())
 }
 
 #[test]
 fn write_minimal_nine_pixels() -> Result<(), Error> {
-    let path = "tests/samples/create/minimal_nine_pixels.xcf";
-    let mut minimal_xcf = File::create(path)?;
+    let mut minimal_xcf = create_file("minimal_nine_pixels.xcf")?;
     let mut xcf = XcfCreator::new(11, 3, 3, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];
@@ -342,15 +346,14 @@ fn write_minimal_nine_pixels() -> Result<(), Error> {
     };
     layers.push(layer_one);
     xcf.add_layers(&layers);
-    minimal_xcf.write_all(xcf.data.as_slice())?;
-    assert_hash(path, "e1748ff2086655bfbcdad61ca4cf27bc7522ab50");
+    minimal_xcf.0.write_all(xcf.data.as_slice())?;
+    assert_hash(minimal_xcf.1.to_str().expect(""), "e1748ff2086655bfbcdad61ca4cf27bc7522ab50");
     Ok(())
 }
 
 #[test]
 fn write_minimal_one_pixel_two_layers() -> Result<(), Error> {
-    let path = "tests/samples/create/minimal_one_pixel_two_layers.xcf";
-    let mut minimal_xcf = File::create(path)?;
+    let mut minimal_xcf = create_file("minimal_one_pixel_two_layers.xcf")?;
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];
@@ -396,8 +399,8 @@ fn write_minimal_one_pixel_two_layers() -> Result<(), Error> {
     };
     layers.push(layer_two);
     xcf.add_layers(&layers);
-    minimal_xcf.write_all(xcf.data.as_slice())?;
-    assert_hash(path, "04ce4639d6d8168cedd5a6d8067b3babb7e2b432");
+    minimal_xcf.0.write_all(xcf.data.as_slice())?;
+    assert_hash(minimal_xcf.1.to_str().expect(""), "04ce4639d6d8168cedd5a6d8067b3babb7e2b432");
     Ok(())
 }
 
