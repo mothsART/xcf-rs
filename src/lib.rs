@@ -166,6 +166,13 @@ impl LayerColorValue {
             _ => return Err(Error::InvalidFormat),
         })
     }
+
+    pub(crate) fn has_alpha(value: LayerColorValue) -> bool {
+        match value {
+            LayerColorValue::Rgba | LayerColorValue::GrayscaleWithAlpha | LayerColorValue::IndexedWithAlpha => true,
+            LayerColorValue::Rgb | LayerColorValue::Grayscale | LayerColorValue::Indexed => false
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]

@@ -88,7 +88,7 @@ fn write_minimal_xcf11() -> Result<(), Error> {
         height: 1,
         kind: LayerColorType {
             kind: LayerColorValue::Rgb,
-            alpha: true,
+            alpha: false, // TODO : delete ? LayerColorValue can determine alpha value
         },
         name: "Background".to_string(),
         pixels: pixels_layer_one,
@@ -348,14 +348,15 @@ fn write_minimal_nine_pixels() -> Result<(), Error> {
 }
 
 #[test]
-fn write_miniminiminimal() -> Result<(), Error> {
-    let mut minimal_xcf = File::create("tests/samples/minimal.xcf")?;
+fn write_minimal_one_pixel_two_layers() -> Result<(), Error> {
+    let path = "tests/samples/minimal_one_pixel_two_layers.xcf";
+    let mut minimal_xcf = File::create(path)?;
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];
 
     let pixels_layer_one = vec![
-        RgbaPixel::new(0, 24, 80, 0),  // #001850
+        RgbaPixel::new(0, 24, 80, 255),  // #001850
     ];
     let pixels_layer_one: PixelData = PixelData {
         width: 1,
@@ -375,7 +376,7 @@ fn write_miniminiminimal() -> Result<(), Error> {
     };
     layers.push(layer_one);
     let pixels_layer_two = vec![
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
+        RgbaPixel::new(148, 85, 0, 255),  // #945500
     ];
     let pixels_layer_two: PixelData = PixelData {
         width: 1,
@@ -386,7 +387,7 @@ fn write_miniminiminimal() -> Result<(), Error> {
         width: 1,
         height: 1,
         kind: LayerColorType {
-            kind: LayerColorValue::Rgba,
+            kind: LayerColorValue::Rgb,
             alpha: true,
         },
         name: "Background".to_string(),
@@ -396,6 +397,7 @@ fn write_miniminiminimal() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     minimal_xcf.write_all(xcf.data.as_slice())?;
+    assert_hash(path, "04ce4639d6d8168cedd5a6d8067b3babb7e2b432");
     Ok(())
 }
 
