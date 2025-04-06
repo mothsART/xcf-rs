@@ -1,8 +1,8 @@
-use xcf::data::{error::Error, xcf::Xcf};
+use xcf_rs::data::{error::Error, xcf::Xcf};
 
 #[test]
 fn read_1x1_violet_legacy() -> Result<(), Error> {
-    let raw_image = Xcf::open("tests/samples/1x1-violet-legacy.xcf")?;
+    let raw_image = Xcf::open("tests/samples/parsing/1x1-violet-legacy.xcf")?;
 
     assert_eq!(raw_image.header.version.num(), 0);
     assert_eq!(raw_image.dimensions(), (1, 1));
@@ -13,7 +13,7 @@ fn read_1x1_violet_legacy() -> Result<(), Error> {
 
 #[test]
 fn read_1x1_violet_with_comment() -> Result<(), Error> {
-    let raw_image = Xcf::open("tests/samples/1x1-violet-with-comment.xcf")?;
+    let raw_image = Xcf::open("tests/samples/parsing/1x1-violet-with-comment.xcf")?;
 
     assert_eq!(raw_image.header.version.num(), 11);
     assert_eq!(raw_image.dimensions(), (1, 1));
@@ -24,7 +24,7 @@ fn read_1x1_violet_with_comment() -> Result<(), Error> {
 
 #[test]
 fn read_245x6734_odd_size_odd_layer() -> Result<(), Error> {
-    let raw_image = Xcf::open("tests/samples/246x6734-odd-size-odd-layer.xcf")?;
+    let raw_image = Xcf::open("tests/samples/parsing/246x6734-odd-size-odd-layer.xcf")?;
 
     assert_eq!(raw_image.header.version.num(), 11);
 
@@ -46,7 +46,7 @@ fn read_245x6734_odd_size_odd_layer() -> Result<(), Error> {
 
 #[test]
 fn read_512x512_base_with_alpha() -> Result<(), Error> {
-    let raw_image = Xcf::open("tests/samples/512x512-base-with-alpha.xcf")?;
+    let raw_image = Xcf::open("tests/samples/parsing/512x512-base-with-alpha.xcf")?;
 
     assert_eq!(raw_image.header.version.num(), 11);
     assert_eq!(raw_image.dimensions(), (512, 512));
@@ -66,7 +66,7 @@ fn read_512x512_base_with_alpha() -> Result<(), Error> {
 
 #[test]
 fn read_512x512_yellow_base_cloud_layer_empty_layer() -> Result<(), Error> {
-    let raw_image = Xcf::open("tests/samples/512x512-yellow-base-cloud-layer-empty-layer.xcf")?;
+    let raw_image = Xcf::open("tests/samples/parsing/512x512-yellow-base-cloud-layer-empty-layer.xcf")?;
 
     assert_eq!(raw_image.header.version.num(), 11);
     assert_eq!(raw_image.dimensions(), (512, 512));
@@ -81,7 +81,7 @@ fn read_512x512_yellow_base_cloud_layer_empty_layer() -> Result<(), Error> {
 
 #[test]
 fn mini() -> Result<(), Error> {
-    let raw_image = Xcf::open("tests/samples/mini.xcf")?;
+    let raw_image = Xcf::open("tests/samples/parsing/mini.xcf")?;
 
     assert_eq!(raw_image.header.version.num(), 12);
     assert_eq!(raw_image.dimensions(), (1, 1));
@@ -93,7 +93,7 @@ fn mini() -> Result<(), Error> {
 #[test]
 #[ignore]
 fn read_1024x1024_better_compression() -> Result<(), Error> {
-    let raw_image = Xcf::open("tests/samples/1024x1024-better-compression.xcf")?;
+    let raw_image = Xcf::open("tests/samples/parsing/1024x1024-better-compression.xcf")?;
 
     assert_eq!(raw_image.header.version.num(), 11);
     assert_eq!(raw_image.dimensions(), (1024, 1024));

@@ -2,12 +2,12 @@ use sha1::{Digest, Sha1};
 use std::fs::File;
 use std::io::Write;
 
-use xcf::create::XcfCreator;
-use xcf::data::layer::Layer;
-use xcf::data::pixeldata::PixelData;
-use xcf::data::property::{ParasiteProperty, ResolutionProperty};
-use xcf::data::xcf::XcfCompression;
-use xcf::{
+use xcf_rs::create::XcfCreator;
+use xcf_rs::data::layer::Layer;
+use xcf_rs::data::pixeldata::PixelData;
+use xcf_rs::data::property::{ParasiteProperty, ResolutionProperty};
+use xcf_rs::data::xcf::XcfCompression;
+use xcf_rs::{
     data::{
         color::ColorType,
         error::Error,
@@ -28,7 +28,7 @@ fn assert_hash(path: &'static str, expected_hash: &'static str) {
 
 #[test]
 fn write_minimal_xcf1() -> Result<(), Error> {
-    let path = "tests/samples/minimal_xcf1.xcf";
+    let path = "tests/samples/create/minimal_xcf1.xcf";
     let mut minimal_xcf = File::create(path)?;
     let mut xcf = XcfCreator::new(1, 1, 1, ColorType::Rgb);
     let properties = vec![];
@@ -42,7 +42,7 @@ fn write_minimal_xcf1() -> Result<(), Error> {
 
 #[test]
 fn write_minimal_xcf3() -> Result<(), Error> {
-    let path = "tests/samples/minimal_xcf3.xcf";
+    let path = "tests/samples/create/minimal_xcf3.xcf";
     let mut minimal_xcf = File::create(path)?;
     let mut xcf = XcfCreator::new(3, 1, 1, ColorType::Rgb);
     let properties = vec![];
@@ -56,7 +56,7 @@ fn write_minimal_xcf3() -> Result<(), Error> {
 
 #[test]
 fn write_minimal_xcf10() -> Result<(), Error> {
-    let path = "tests/samples/minimal_xcf10.xcf";
+    let path = "tests/samples/create/minimal_xcf10.xcf";
     let mut minimal_xcf = File::create(path)?;
     let mut xcf = XcfCreator::new(10, 1, 1, ColorType::Rgb);
     let properties = vec![];
@@ -70,7 +70,7 @@ fn write_minimal_xcf10() -> Result<(), Error> {
 
 #[test]
 fn write_minimal_xcf11() -> Result<(), Error> {
-    let path = "tests/samples/minimal_xcf11.xcf";
+    let path = "tests/samples/create/minimal_xcf11.xcf";
     let mut minimal_xcf = File::create(path)?;
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
     xcf.add_properties(&vec![]);
@@ -104,7 +104,7 @@ fn write_minimal_xcf11() -> Result<(), Error> {
 
 #[test]
 fn write_minimal_xcf11_properties() -> Result<(), Error> {
-    let path = "tests/samples/minimal_xcf11_properties.xcf";
+    let path = "tests/samples/create/minimal_xcf11_properties.xcf";
     let mut minimal_xcf = File::create(path)?;
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
 
@@ -271,7 +271,7 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
 
 #[test]
 fn write_minimal_four_pixels() -> Result<(), Error> {
-    let path = "tests/samples/minimal_four_pixels.xcf";
+    let path = "tests/samples/create/minimal_four_pixels.xcf";
     let mut minimal_xcf = File::create(path)?;
     let mut xcf = XcfCreator::new(11, 2, 2, ColorType::Rgb);
     xcf.add_properties(&vec![]);
@@ -308,7 +308,7 @@ fn write_minimal_four_pixels() -> Result<(), Error> {
 
 #[test]
 fn write_minimal_nine_pixels() -> Result<(), Error> {
-    let path = "tests/samples/minimal_nine_pixels.xcf";
+    let path = "tests/samples/create/minimal_nine_pixels.xcf";
     let mut minimal_xcf = File::create(path)?;
     let mut xcf = XcfCreator::new(11, 3, 3, ColorType::Rgb);
     xcf.add_properties(&vec![]);
@@ -349,7 +349,7 @@ fn write_minimal_nine_pixels() -> Result<(), Error> {
 
 #[test]
 fn write_minimal_one_pixel_two_layers() -> Result<(), Error> {
-    let path = "tests/samples/minimal_one_pixel_two_layers.xcf";
+    let path = "tests/samples/create/minimal_one_pixel_two_layers.xcf";
     let mut minimal_xcf = File::create(path)?;
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
     xcf.add_properties(&vec![]);
@@ -404,7 +404,7 @@ fn write_minimal_one_pixel_two_layers() -> Result<(), Error> {
 /*
 #[test]
 fn write_miniminiminimal() -> Result<(), Error> {
-    let mut minimal_xcf = File::create("tests/samples/minimal.xcf")?;
+    let mut minimal_xcf = File::create("tests/samples/create/minimal.xcf")?;
     let mut xcf = XcfCreator::new(11, 4, 4, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];

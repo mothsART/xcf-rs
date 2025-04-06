@@ -560,7 +560,6 @@ impl XcfCreator {
         }
         self.extend_u64(0); // layer_offset[1] = 0
         self.extend_u64(0); // channel_offset[0] = 0
-        //return;
         self.data.extend_from_slice(&layer_data);
         self.index += layer_len as u64;
     }

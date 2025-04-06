@@ -1,4 +1,4 @@
-use xcf::create::rle_compress;
+use xcf_rs::create::rle_compress;
 
 #[test]
 fn rle_compression_four_pixels() {

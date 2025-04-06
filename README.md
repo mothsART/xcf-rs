@@ -20,8 +20,11 @@ https://testing.developer.gimp.org/core/standards/xcf/
 
 # Use of
 
-hachoir : https://hachoir.readthedocs.io/
-hexdump
+- hachoir : https://hachoir.readthedocs.io/
+
+- hexdump
+
+- kdiff
 
 # Example
 

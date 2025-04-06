@@ -2,7 +2,4 @@
 **/*.rs.bk
 Cargo.lock
 
-tests/samples/minimal_xcf1.xcf
-tests/samples/minimal_xcf3.xcf
-tests/samples/minimal_xcf10.xcf
-tests/samples/minimal_xcf11.xcf
+tests/samples/create
