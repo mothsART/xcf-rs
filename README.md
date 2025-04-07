@@ -43,3 +43,7 @@ fn main() {
         .expect("Failed to open and parse XCF file.");
 }
 ```
+
+# Credits
+
+This soft is initially a fork of https://github.com/shivshank/xcf-rs

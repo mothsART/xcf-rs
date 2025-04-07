@@ -1,3 +1,7 @@
+use std::fs::File;
+use std::io::Write;
+use std::path::PathBuf;
+
 use byteorder::{BigEndian, ByteOrder};
 
 use crate::data::color::ColorType;
@@ -562,6 +566,12 @@ impl XcfCreator {
         self.extend_u64(0); // channel_offset[0] = 0
         self.data.extend_from_slice(&layer_data);
         self.index += layer_len as u64;
+    }
+
+    pub fn save(&mut self, path: &PathBuf) -> Result<File, crate::Error> {
+        let mut new_file = File::create(&path)?;
+        new_file.write_all(self.data.as_slice())?;
+        Ok(new_file)
     }
 }
 
