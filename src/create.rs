@@ -539,9 +539,10 @@ impl XcfCreator {
                 }
                 let mut buffer = vec![];
 
-                /*
                 println!("buffer_r {:?}", &buffer_r);
                 println!("rle_r {:?}", rle_compress(&buffer_r));
+
+                /*
                 println!("buffer_g {:?}", &buffer_g);
                 println!("rle_g {:?}", rle_compress(&buffer_g));
                 println!("buffer_b {:?}", &buffer_b);
@@ -617,14 +618,13 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         verbatim.push(*byte);
         last_byte = Some(*byte);
     }
+    println!(">>>> {} {:?}", short_identical_len, verbatim);
 
-    if short_identical_len == 0 {
-        if verbatim.iter().len() == 1 {
-            compress_data.push(0);
-        } else {
-            compress_data.push((256 - verbatim.iter().len()) as u8);
-        }
-        compress_data.extend_from_slice(&verbatim);
+    if verbatim.iter().len() == 1 {
+        compress_data.push(0);
+    } else {
+        compress_data.push((256 - verbatim.iter().len()) as u8);
     }
+    compress_data.extend_from_slice(&verbatim);
     compress_data
 }
