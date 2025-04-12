@@ -1,7 +1,6 @@
 use sha1::{Digest, Sha1};
 use std::fs::{create_dir, File};
 use std::path::{Path, PathBuf};
-use std::io::Write;
 
 use xcf_rs::create::XcfCreator;
 use xcf_rs::data::layer::Layer;
@@ -392,8 +391,7 @@ fn write_minimal_one_pixel_two_layers() -> Result<(), Error> {
 
 #[test]
 fn write_minimal_9x3() -> Result<(), Error> {
-    let mut minimal_xcf = File::create("tests/samples/create/minimal_9x3.xcf")?;
-    let mut xcf = XcfCreator::new(11, 9, 3, ColorType::Rgb);
+   let mut xcf = XcfCreator::new(11, 9, 3, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];
 
@@ -447,13 +445,13 @@ fn write_minimal_9x3() -> Result<(), Error> {
     };
     layers.push(layer_two);
     xcf.add_layers(&layers);
-    minimal_xcf.write_all(xcf.data.as_slice())?;
+    let xcf_file = create_file("minimal_9x3_pixels.xcf", &mut xcf)?;
+    assert_hash(xcf_file.1.to_str().expect(""), "b69e3fd8815cffdf722dd440ec5076060e4cde6a");
     Ok(())
 }
 
 #[test]
 fn write_minimal_9x9() -> Result<(), Error> {
-    let mut minimal_xcf = File::create("tests/samples/create/minimal_9x9.xcf")?;
     let mut xcf = XcfCreator::new(11, 9, 9, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];
@@ -567,13 +565,13 @@ fn write_minimal_9x9() -> Result<(), Error> {
     };
     layers.push(layer_two);
     xcf.add_layers(&layers);
-    minimal_xcf.write_all(xcf.data.as_slice())?;
+    let xcf_file = create_file("minimal_9x9_pixels.xcf", &mut xcf)?;
+    assert_hash(xcf_file.1.to_str().expect(""), "a1ea8f2e9be410533cbfd81d0dc90835e064767f");
     Ok(())
 }
 
 #[test]
-fn write_miniminiminimal() -> Result<(), Error> {
-    let mut minimal_xcf = File::create("tests/samples/create/minimal.xcf")?;
+fn write_minimal_9x15_diff_bytes() -> Result<(), Error> {
     let mut xcf = XcfCreator::new(11, 9, 15, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];
@@ -747,6 +745,185 @@ fn write_miniminiminimal() -> Result<(), Error> {
     };
     layers.push(layer_two);
     xcf.add_layers(&layers);
-    minimal_xcf.write_all(xcf.data.as_slice())?;
+    let xcf_file = create_file("minimal_9x15_pixels.xcf", &mut xcf)?;
+    assert_hash(xcf_file.1.to_str().expect(""), "5538a716959ce0b366876e995bc08ae4fc070835");
     Ok(())
+}
+
+#[test]
+fn write_minimal_9x15_same_bytes() -> Result<(), Error> {
+    let mut xcf = XcfCreator::new(11, 9, 15, ColorType::Rgb);
+    xcf.add_properties(&vec![]);
+    let mut layers = vec![];
+
+    let pixels_layer_two = vec![
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+    ];
+    let pixels_layer_two: PixelData = PixelData {
+        width: 9,
+        height: 15,
+        pixels: pixels_layer_two,
+    };
+    let layer_two = Layer {
+        width: 9,
+        height: 15,
+        kind: LayerColorType {
+            kind: LayerColorValue::Rgb,
+            alpha: false,
+        },
+        name: "Background".to_string(),
+        pixels: pixels_layer_two,
+        properties: vec![],
+    };
+    layers.push(layer_two);
+    xcf.add_layers(&layers);
+    let xcf_file = create_file("minimal_9x15_same_pixels.xcf", &mut xcf)?;    Ok(())
 }
