@@ -4,6 +4,9 @@ use std::path::PathBuf;
 
 use byteorder::{BigEndian, ByteOrder};
 
+extern crate hex_slice;
+use hex_slice::AsHex;
+
 use crate::data::color::ColorType;
 use crate::data::layer::Layer;
 use crate::data::property::Property;
@@ -539,8 +542,9 @@ impl XcfCreator {
                 }
                 let mut buffer = vec![];
 
-                println!("buffer_r {:?}", &buffer_r);
-                println!("rle_r {:?}", rle_compress(&buffer_r));
+                //println!("buffer_r {:?}", &buffer_r);
+                //println!("buffer_r len {:?}", &buffer_r.iter().len());
+                //println!("rle_r {:?}", rle_compress(&buffer_r));
 
                 /*
                 println!("buffer_g {:?}", &buffer_g);
@@ -549,6 +553,11 @@ impl XcfCreator {
                 println!("rle_b {:?}", rle_compress(&buffer_b));
                 println!("buffer_a {:?}", &buffer_a);
                 println!("rle_a {:?}", rle_compress(&buffer_a));
+                */
+
+                /*
+                println!("buffer_r {:02X}", &buffer_r.as_hex());
+                println!("rle_r {:02X}", rle_compress(&buffer_r).as_hex());
                 */
 
                 buffer.extend(rle_compress(&buffer_r));
@@ -618,12 +627,19 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         verbatim.push(*byte);
         last_byte = Some(*byte);
     }
-    println!(">>>> {} {:?}", short_identical_len, verbatim);
 
-    if verbatim.iter().len() == 1 {
+    let verbatim_len = verbatim.iter().len();
+    if verbatim_len == 1 {
         compress_data.push(0);
-    } else {
-        compress_data.push((256 - verbatim.iter().len()) as u8);
+    }
+    else if verbatim_len >= 128 {
+        // verbatim_len = p*256+q
+        let p = verbatim_len / 256;
+        let q = verbatim_len % 256;
+        compress_data.extend_from_slice(&[128, p as u8, q as u8]);
+    }
+    else {
+        compress_data.push((256 - verbatim_len) as u8);
     }
     compress_data.extend_from_slice(&verbatim);
     compress_data

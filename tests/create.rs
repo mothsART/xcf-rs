@@ -390,266 +390,356 @@ fn write_minimal_one_pixel_two_layers() -> Result<(), Error> {
     Ok(())
 }
 
-
 #[test]
-fn write_miniminiminimal() -> Result<(), Error> {
-    let mut minimal_xcf = File::create("tests/samples/create/minimal.xcf")?;
-    let mut xcf = XcfCreator::new(11, 15, 15, ColorType::Rgb);
+fn write_minimal_9x3() -> Result<(), Error> {
+    let mut minimal_xcf = File::create("tests/samples/create/minimal_9x3.xcf")?;
+    let mut xcf = XcfCreator::new(11, 9, 3, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];
 
     let pixels_layer_two = vec![
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
 
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
 
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
 
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
-
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
-
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
-
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
-
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
-
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
-
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
-
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
-
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
-
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
-
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
-
-        RgbaPixel::new(148, 85, 0, 0),  // #945500
-        RgbaPixel::new(175, 0, 3, 0),  // #af0003
-        RgbaPixel::new(0, 133, 12, 0),  // #00850c
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(229, 247, 16, 0),  // #e5f710
-        RgbaPixel::new(255, 255, 255, 0),  // #ffffff
-        RgbaPixel::new(55, 37, 230, 0),  // #3725e6
-        RgbaPixel::new(132, 230, 37, 0),  // #84e625
-        RgbaPixel::new(0, 54, 55, 0),  // #003637
-        RgbaPixel::new(55, 0, 54, 0),  // #370036
-        RgbaPixel::new(255, 127, 252, 0),  // #ff7ffc
-        RgbaPixel::new(117, 107, 97, 0),  // #756b61
-        RgbaPixel::new(183, 255, 154, 0),  // #b7ff9a
-        RgbaPixel::new(209, 129, 0, 0),  // #d18100
-        RgbaPixel::new(209, 0, 75, 0),  // #d1004b
     ];
     let pixels_layer_two: PixelData = PixelData {
-        width: 15,
+        width: 9,
+        height: 3,
+        pixels: pixels_layer_two,
+    };
+    let layer_two = Layer {
+        width: 9,
+        height: 3,
+        kind: LayerColorType {
+            kind: LayerColorValue::Rgb,
+            alpha: true,
+        },
+        name: "Background".to_string(),
+        pixels: pixels_layer_two,
+        properties: vec![],
+    };
+    layers.push(layer_two);
+    xcf.add_layers(&layers);
+    minimal_xcf.write_all(xcf.data.as_slice())?;
+    Ok(())
+}
+
+#[test]
+fn write_minimal_9x9() -> Result<(), Error> {
+    let mut minimal_xcf = File::create("tests/samples/create/minimal_9x9.xcf")?;
+    let mut xcf = XcfCreator::new(11, 9, 9, ColorType::Rgb);
+    xcf.add_properties(&vec![]);
+    let mut layers = vec![];
+
+    let pixels_layer_two = vec![
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+    ];
+    let pixels_layer_two: PixelData = PixelData {
+        width: 9,
+        height: 9,
+        pixels: pixels_layer_two,
+    };
+    let layer_two = Layer {
+        width: 9,
+        height: 9,
+        kind: LayerColorType {
+            kind: LayerColorValue::Rgb,
+            alpha: false,
+        },
+        name: "Background".to_string(),
+        pixels: pixels_layer_two,
+        properties: vec![],
+    };
+    layers.push(layer_two);
+    xcf.add_layers(&layers);
+    minimal_xcf.write_all(xcf.data.as_slice())?;
+    Ok(())
+}
+
+#[test]
+fn write_miniminiminimal() -> Result<(), Error> {
+    let mut minimal_xcf = File::create("tests/samples/create/minimal.xcf")?;
+    let mut xcf = XcfCreator::new(11, 9, 15, ColorType::Rgb);
+    xcf.add_properties(&vec![]);
+    let mut layers = vec![];
+
+    let pixels_layer_two = vec![
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+
+        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+        RgbaPixel::new(130, 222, 36, 0),  // #82de24
+        RgbaPixel::new(222, 36, 36, 0),   // #de2424
+        RgbaPixel::new(36, 108, 222, 0),  // #246cde
+        RgbaPixel::new(222, 208, 36, 0),  // #ded024
+        RgbaPixel::new(5, 97, 48, 0),     // #056130
+        RgbaPixel::new(0, 0, 0, 0),       // #000000
+        RgbaPixel::new(136, 231, 219, 0), // #88e7db
+        RgbaPixel::new(248, 114, 0, 0),   // #f87200
+    ];
+    let pixels_layer_two: PixelData = PixelData {
+        width: 9,
         height: 15,
         pixels: pixels_layer_two,
     };
     let layer_two = Layer {
-        width: 15,
+        width: 9,
         height: 15,
         kind: LayerColorType {
-            kind: LayerColorValue::Rgba,
-            alpha: true,
+            kind: LayerColorValue::Rgb,
+            alpha: false,
         },
         name: "Background".to_string(),
         pixels: pixels_layer_two,
