@@ -542,9 +542,9 @@ impl XcfCreator {
                 }
                 let mut buffer = vec![];
 
-                //println!("buffer_r {:?}", &buffer_r);
-                //println!("buffer_r len {:?}", &buffer_r.iter().len());
-                //println!("rle_r {:?}", rle_compress(&buffer_r));
+                println!("buffer_r {:?}", &buffer_r);
+                println!("buffer_r len {:?}", &buffer_r.iter().len());
+                println!("rle_r {:?}", rle_compress(&buffer_r));
 
                 /*
                 println!("buffer_g {:?}", &buffer_g);

@@ -452,109 +452,31 @@ fn write_minimal_9x3() -> Result<(), Error> {
 
 #[test]
 fn write_minimal_9x9() -> Result<(), Error> {
-    let mut xcf = XcfCreator::new(11, 9, 9, ColorType::Rgb);
+    let height = 9;
+    let mut xcf = XcfCreator::new(11, 9, height, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];
 
-    let pixels_layer_two = vec![
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-    ];
+    let mut pixels_layer_two = vec![];
+    for _i in 0..height {
+        pixels_layer_two.push(RgbaPixel::new(158, 36, 222, 0));  // #9e24de
+        pixels_layer_two.push(RgbaPixel::new(130, 222, 36, 0)); // #82de24
+        pixels_layer_two.push(RgbaPixel::new(222, 36, 36, 0)); // #de2424
+        pixels_layer_two.push(RgbaPixel::new(36, 108, 222, 0)); // #246cde
+        pixels_layer_two.push(RgbaPixel::new(222, 208, 36, 0)); // #ded024
+        pixels_layer_two.push(RgbaPixel::new(5, 97, 48, 0)); // #056130
+        pixels_layer_two.push(RgbaPixel::new(0, 0, 0, 0)); // #000000
+        pixels_layer_two.push(RgbaPixel::new(136, 231, 219, 0)); // #88e7db
+        pixels_layer_two.push(RgbaPixel::new(248, 114, 0, 0)); // #f87200
+    }
     let pixels_layer_two: PixelData = PixelData {
         width: 9,
-        height: 9,
+        height: height,
         pixels: pixels_layer_two,
     };
     let layer_two = Layer {
         width: 9,
-        height: 9,
+        height: height,
         kind: LayerColorType {
             kind: LayerColorValue::Rgb,
             alpha: false,
@@ -572,169 +494,31 @@ fn write_minimal_9x9() -> Result<(), Error> {
 
 #[test]
 fn write_minimal_9x15_diff_bytes() -> Result<(), Error> {
-    let mut xcf = XcfCreator::new(11, 9, 15, ColorType::Rgb);
+    let height = 15;
+    let mut xcf = XcfCreator::new(11, 9, height, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];
 
-    let pixels_layer_two = vec![
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(130, 222, 36, 0),  // #82de24
-        RgbaPixel::new(222, 36, 36, 0),   // #de2424
-        RgbaPixel::new(36, 108, 222, 0),  // #246cde
-        RgbaPixel::new(222, 208, 36, 0),  // #ded024
-        RgbaPixel::new(5, 97, 48, 0),     // #056130
-        RgbaPixel::new(0, 0, 0, 0),       // #000000
-        RgbaPixel::new(136, 231, 219, 0), // #88e7db
-        RgbaPixel::new(248, 114, 0, 0),   // #f87200
-    ];
+    let mut pixels_layer_two = vec![];
+    for _i in 0..height {
+        pixels_layer_two.push(RgbaPixel::new(158, 36, 222, 0));  // #9e24de
+        pixels_layer_two.push(RgbaPixel::new(130, 222, 36, 0));  // #82de24
+        pixels_layer_two.push(RgbaPixel::new(222, 36, 36, 0));  // #de2424
+        pixels_layer_two.push(RgbaPixel::new(36, 108, 222, 0));  // #246cde
+        pixels_layer_two.push(RgbaPixel::new(222, 208, 36, 0));  // #ded024
+        pixels_layer_two.push(RgbaPixel::new(5, 97, 48, 0));  // #056130
+        pixels_layer_two.push(RgbaPixel::new(0, 0, 0, 0));  // #000000
+        pixels_layer_two.push(RgbaPixel::new(136, 231, 219, 0));  // #88e7db
+        pixels_layer_two.push(RgbaPixel::new(248, 114, 0, 0));  // #f87200
+    }
     let pixels_layer_two: PixelData = PixelData {
         width: 9,
-        height: 15,
+        height: height,
         pixels: pixels_layer_two,
     };
     let layer_two = Layer {
         width: 9,
-        height: 15,
+        height: height,
         kind: LayerColorType {
             kind: LayerColorValue::Rgb,
             alpha: false,
@@ -751,170 +535,27 @@ fn write_minimal_9x15_diff_bytes() -> Result<(), Error> {
 }
 
 #[test]
-fn write_minimal_9x15_same_bytes() -> Result<(), Error> {
-    let mut xcf = XcfCreator::new(11, 9, 15, ColorType::Rgb);
+fn write_minimal_9x20_same_bytes() -> Result<(), Error> {
+    let width = 9;
+    let height = 15;
+    let mut xcf = XcfCreator::new(11, width, height, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];
 
-    let pixels_layer_two = vec![
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+    let mut pixels_layer_two = vec![];
 
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
+    for _i in 0..(width * height) {
+        pixels_layer_two.push(RgbaPixel::new(0, 0, 0, 0));
+    }
 
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-        RgbaPixel::new(158, 36, 222, 0),  // #9e24de
-    ];
     let pixels_layer_two: PixelData = PixelData {
-        width: 9,
-        height: 15,
+        width: width,
+        height: height,
         pixels: pixels_layer_two,
     };
     let layer_two = Layer {
-        width: 9,
-        height: 15,
+        width: width,
+        height: height,
         kind: LayerColorType {
             kind: LayerColorValue::Rgb,
             alpha: false,
@@ -926,4 +567,39 @@ fn write_minimal_9x15_same_bytes() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_9x15_same_pixels.xcf", &mut xcf)?;    Ok(())
+}
+
+#[test]
+fn write_minimal_9x65_same_bytes() -> Result<(), Error> {
+    let width = 9;
+    let height = 65;
+    let mut xcf = XcfCreator::new(11, width, height, ColorType::Rgb);
+    xcf.add_properties(&vec![]);
+    let mut layers = vec![];
+
+    let mut pixels_layer_two = vec![];
+
+    for i in 0..(width * height) {
+        pixels_layer_two.push(RgbaPixel::new(0, 0, 0, 0));
+    }
+
+    let pixels_layer_two: PixelData = PixelData {
+        width: width,
+        height: height,
+        pixels: pixels_layer_two,
+    };
+    let layer_two = Layer {
+        width: width,
+        height: height,
+        kind: LayerColorType {
+            kind: LayerColorValue::Rgb,
+            alpha: false,
+        },
+        name: "Background".to_string(),
+        pixels: pixels_layer_two,
+        properties: vec![],
+    };
+    layers.push(layer_two);
+    xcf.add_layers(&layers);
+    let xcf_file = create_file("minimal_9x65_same_pixels.xcf", &mut xcf)?;    Ok(())
 }
