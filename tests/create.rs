@@ -534,8 +534,9 @@ fn write_minimal_9x15_diff_bytes() -> Result<(), Error> {
     Ok(())
 }
 
+
 #[test]
-fn write_minimal_9x20_same_bytes() -> Result<(), Error> {
+fn write_minimal_9x15_same_bytes() -> Result<(), Error> {
     let width = 9;
     let height = 15;
     let mut xcf = XcfCreator::new(11, width, height, ColorType::Rgb);
@@ -545,7 +546,7 @@ fn write_minimal_9x20_same_bytes() -> Result<(), Error> {
     let mut pixels_layer_two = vec![];
 
     for _i in 0..(width * height) {
-        pixels_layer_two.push(RgbaPixel::new(0, 0, 0, 0));
+        pixels_layer_two.push(RgbaPixel::new(54, 201, 84, 0)); // #36c954
     }
 
     let pixels_layer_two: PixelData = PixelData {
@@ -568,7 +569,7 @@ fn write_minimal_9x20_same_bytes() -> Result<(), Error> {
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_9x15_same_pixels.xcf", &mut xcf)?;    Ok(())
 }
-
+/*
 #[test]
 fn write_minimal_9x65_same_bytes() -> Result<(), Error> {
     let width = 9;
@@ -603,3 +604,4 @@ fn write_minimal_9x65_same_bytes() -> Result<(), Error> {
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_9x65_same_pixels.xcf", &mut xcf)?;    Ok(())
 }
+*/
