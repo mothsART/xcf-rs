@@ -632,6 +632,10 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
     if verbatim_len == 1 {
         compress_data.push(0);
     }
+    else if short_identical_len > 0 && verbatim_len >= 1 && verbatim_len <= 126 {
+        compress_data.push(short_identical_len as u8);
+        verbatim = vec![last_byte.unwrap()];
+    }
     else if verbatim_len >= 128 {
         // verbatim_len = p*256+q
         let p = verbatim_len / 256;

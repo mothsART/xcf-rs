@@ -70,3 +70,13 @@ fn rle_compression_9x15_same_pixels() {
         vec![127, 0, 135, 54]
     );
 }
+
+#[test]
+fn rle_compression_9x1_same_pixels() {
+    assert_eq!(
+        rle_compress(&vec![
+            36, 36, 36, 36, 36, 36, 36, 36, 36
+        ]),
+        vec![08, 36]
+    );
+}
