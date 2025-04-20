@@ -100,7 +100,6 @@ fn write_minimal_xcf11() -> Result<(), Error> {
     Ok(())
 }
 
-/*
 #[test]
 fn write_minimal_xcf11_properties() -> Result<(), Error> {
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
@@ -264,7 +263,7 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
     assert_hash(xcf_file.1.to_str().expect(""), "6d6e2decc5c6393e83c6ac255e99fdf6617c4a95");
     Ok(())
 }
-*/
+
 #[test]
 fn write_minimal_four_pixels() -> Result<(), Error> {
     let mut xcf = XcfCreator::new(11, 2, 2, ColorType::Rgb);
@@ -534,7 +533,6 @@ fn write_minimal_9x15_diff_bytes() -> Result<(), Error> {
     assert_hash(xcf_file.1.to_str().expect(""), "5538a716959ce0b366876e995bc08ae4fc070835");
     Ok(())
 }
-
 
 #[test]
 fn write_minimal_9x15_same_bytes() -> Result<(), Error> {

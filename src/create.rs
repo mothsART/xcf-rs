@@ -470,9 +470,9 @@ impl XcfCreator {
             let mut layer_len = 0;
 
             let tile_width_nb = 1 + layer.width / 64;
-            let tile_width_remainder = layer.width % 64;
+            //let tile_width_remainder = layer.width % 64;
             let tile_height_nb = 1 + layer.height / 64;
-            let tile_height_remainder = layer.height % 64;
+            //let tile_height_remainder = layer.height % 64;
             let nb_tiles = tile_width_nb * tile_height_nb;
 
             // Each layers is 8 bits + 8 bits for close layers + 8 bits for close channels
@@ -515,7 +515,6 @@ impl XcfCreator {
             }
 
             let mut tiles_headers = vec![];
-            let mut tiles_headers_len = 0;
             let mut tiles_body = vec![];
             let mut tiles: Vec<Vec<RgbaPixel>> = vec![];
             let nb_of_tiles = tile_width_nb * tile_height_nb;
@@ -523,11 +522,11 @@ impl XcfCreator {
                 tiles.push(vec![]);
             }
 
-            let mut inc = 0;
+            let mut tile_inc = 0;
             let mut tile_index = 0;
             for pixel in &layer.pixels.pixels {
-                inc += 1;
-                if inc > layer.width * 64 {
+                tile_inc += 1;
+                if tile_inc > layer.width * 64 {
                     tile_index = 1;
                 }
                 //let tile_index = (inc -1) % seq_lenght / ((tile_width_nb - 1) * 64 + tile_width_remainder);
@@ -552,7 +551,7 @@ impl XcfCreator {
                     );
                 }
 
-                let tile_pointer_size = 8 * nb_of_tiles + 4;
+                //let tile_pointer_size = 8 * nb_of_tiles + 4;
                 let mut tile_len = 0;
 
                 let mut offset_data = vec![];
@@ -570,12 +569,12 @@ impl XcfCreator {
                 self.buf_extend_u32(&mut offset_data, &mut offset_len,layer.pixels.height); // level[0] height
                 self.buf_extend_u32(&mut offset_data, &mut offset_len,0); // ptr : Pointer to tile data
     
-                let offset_index = hierarchy_ofs + offset_len as u64 + 16;
+                let offset_index = hierarchy_ofs + offset_len as u64 + nb_of_tiles as u64 * 8 + 8;
                 println!(
-                    "offset_index : {} + {} + {} + 16 = offset_index = {}", 
+                    "offset_index : {} + {} + {} + 8 = offset_index = {}", 
                     hierarchy_ofs,
                     offset_len,
-                    tiles_headers_len,
+                    nb_of_tiles,
                     offset_index
                 );
                 //println!("Attendu pour xfc11 : 652. offset_index : {}", offset_index);
@@ -600,7 +599,23 @@ impl XcfCreator {
                 layer_data.extend_from_slice(&hierarchy_data);
                 layer_len += hierarchy_len;
 
+                let mut tile_inc = 0;
+                let mut tiles_headers_len = 0;
                 for tile in tiles {
+                    tile_inc += 1;
+
+                    let tile_index = offset_index as u32 + 16 + nb_of_tiles * 8 + tiles_body.len() as u32;
+                    println!(
+                        "tile_index : {} + {} + {} = {}",
+                        offset_index,
+                        tiles_headers.len(),
+                        tiles_body.len(),
+                        tile_index
+                    );
+                    self.buf_extend_u32(&mut tiles_headers, &mut tiles_headers_len, tile_index);
+                    self.buf_extend_u32(&mut tiles_headers, &mut tiles_headers_len, 0);
+                    tiles_headers_len = 0;
+
                     let mut buffer_r = vec![];
                     let mut buffer_g = vec![];
                     let mut buffer_b = vec![];
@@ -628,25 +643,13 @@ impl XcfCreator {
                         tile_len += rle_a.len();
                         tiles_body.extend(rle_a);
                     }
-
-                    let tile_index = offset_index as u32 + 24;
-                    println!(
-                        "tile_index : {} + {} = {}",
-                        offset_index,
-                        tiles_body.len(),
-                        tile_index
-                    );
-                    self.buf_extend_u32(&mut tiles_headers, &mut tiles_headers_len, tile_index);
-                    self.buf_extend_u32(&mut tiles_headers, &mut tiles_headers_len, 0);
                 }
                 tiles_headers.extend_from_slice(&[0, 0, 0, 0]);
-                tiles_headers_len += 4;
-                
 
                 layer_data.extend_from_slice(&tiles_headers);
                 layer_data.extend_from_slice(&tiles_body);
-                println!("head : {}, body : {}\n", tiles_headers_len, tiles_body.len());
-                layer_len += tiles_headers_len + tiles_body.len() as u32;
+                println!("head : {}, body : {}\n", tiles_headers.len(), tiles_body.len());
+                layer_len += tiles_headers.len() as u32 + tiles_body.len() as u32;
                 self.index += layer_len as u64;
             } else {
                 panic!("not implemented");
