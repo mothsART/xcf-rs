@@ -577,27 +577,6 @@ impl XcfCreator {
                     nb_of_tiles,
                     offset_index
                 );
-                //println!("Attendu pour xfc11 : 652. offset_index : {}", offset_index);
-                //println!("Attendu pour minimal_9x65_same_bytes : 660. offset_index : {}", offset_index);
-                //println!("Attendu pour minimal_one_pixel_two_layers : 656 et 688. offset_index : {} ", offset_index);
-                //if layer_index == 1 {
-                //    self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, 656); // offset[0]
-                //} else {
-                //    self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, 688); // offset[0]
-                //}
-                self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, offset_index); // offset[0]
-                if nb_tiles > 1 {
-                    self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len,710); // offset[1]
-                }
-                self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, 0); // offset[2]
-                hierarchy_data.extend_from_slice(&offset_data);
-                hierarchy_len += offset_len;
-    
-                // hierarchy offset
-                self.buf_extend_u64(&mut layer_data, &mut layer_len, hierarchy_ofs); // hierarchy_ofs=
-                self.buf_extend_u64(&mut layer_data, &mut layer_len,0); // layer mask offset
-                layer_data.extend_from_slice(&hierarchy_data);
-                layer_len += hierarchy_len;
 
                 let mut tile_inc = 0;
                 let mut tiles_headers_len = 0;
@@ -644,6 +623,22 @@ impl XcfCreator {
                         tiles_body.extend(rle_a);
                     }
                 }
+
+                self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, offset_index); // offset[0]
+                if nb_tiles > 1 {
+                    let last_offset = offset_index + tiles_headers.len() as u64 + tiles_body.len() as u64 + 16;
+                    self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len,last_offset); // offset[1]
+                }
+                self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, 0); // offset[2]
+                hierarchy_data.extend_from_slice(&offset_data);
+                hierarchy_len += offset_len;
+
+                // hierarchy offset
+                self.buf_extend_u64(&mut layer_data, &mut layer_len, hierarchy_ofs); // hierarchy_ofs=
+                self.buf_extend_u64(&mut layer_data, &mut layer_len,0); // layer mask offset
+                layer_data.extend_from_slice(&hierarchy_data);
+                layer_len += hierarchy_len;
+
                 tiles_headers.extend_from_slice(&[0, 0, 0, 0]);
 
                 layer_data.extend_from_slice(&tiles_headers);
