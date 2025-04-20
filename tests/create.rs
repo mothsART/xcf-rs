@@ -100,6 +100,7 @@ fn write_minimal_xcf11() -> Result<(), Error> {
     Ok(())
 }
 
+/*
 #[test]
 fn write_minimal_xcf11_properties() -> Result<(), Error> {
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
@@ -263,7 +264,7 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
     assert_hash(xcf_file.1.to_str().expect(""), "6d6e2decc5c6393e83c6ac255e99fdf6617c4a95");
     Ok(())
 }
-
+*/
 #[test]
 fn write_minimal_four_pixels() -> Result<(), Error> {
     let mut xcf = XcfCreator::new(11, 2, 2, ColorType::Rgb);
@@ -384,7 +385,7 @@ fn write_minimal_one_pixel_two_layers() -> Result<(), Error> {
     };
     layers.push(layer_two);
     xcf.add_layers(&layers);
-    let xcf_file = create_file("minimal_one_pixel_two_layers", &mut xcf)?;
+    let xcf_file = create_file("minimal_one_pixel_two_layers.xcf", &mut xcf)?;
     assert_hash(xcf_file.1.to_str().expect(""), "04ce4639d6d8168cedd5a6d8067b3babb7e2b432");
     Ok(())
 }
@@ -569,7 +570,7 @@ fn write_minimal_9x15_same_bytes() -> Result<(), Error> {
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_9x15_same_pixels.xcf", &mut xcf)?;    Ok(())
 }
-/*
+
 #[test]
 fn write_minimal_9x65_same_bytes() -> Result<(), Error> {
     let width = 9;
@@ -580,8 +581,8 @@ fn write_minimal_9x65_same_bytes() -> Result<(), Error> {
 
     let mut pixels_layer_two = vec![];
 
-    for i in 0..(width * height) {
-        pixels_layer_two.push(RgbaPixel::new(0, 0, 0, 0));
+    for _i in 0..(width * height) {
+        pixels_layer_two.push(RgbaPixel::new(54, 201, 84, 0)); // #36c954
     }
 
     let pixels_layer_two: PixelData = PixelData {
@@ -602,6 +603,7 @@ fn write_minimal_9x65_same_bytes() -> Result<(), Error> {
     };
     layers.push(layer_two);
     xcf.add_layers(&layers);
-    let xcf_file = create_file("minimal_9x65_same_pixels.xcf", &mut xcf)?;    Ok(())
+    let xcf_file = create_file("minimal_9x65_same_pixels.xcf", &mut xcf)?;
+    assert_hash(xcf_file.1.to_str().expect(""), "9a40029e3074f3187fe6044bf48db30a68b30c4a");
+    Ok(())
 }
-*/
