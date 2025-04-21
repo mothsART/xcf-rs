@@ -525,12 +525,17 @@ impl XcfCreator {
             let mut tile_inc = 0;
             let mut tile_index = 0;
             for pixel in &layer.pixels.pixels {
-                tile_inc += 1;
-                if tile_inc > layer.width * 64 {
-                    tile_index = 1;
+                if tile_inc >= layer.width * 64 {
+                    tile_index += 1;
+                    tile_inc = 0;
                 }
                 //let tile_index = (inc -1) % seq_lenght / ((tile_width_nb - 1) * 64 + tile_width_remainder);
                 tiles[tile_index as usize].push(*pixel);
+                tile_inc += 1;
+            }
+            
+            for t in &tiles {
+                println!("t : {}", t.len());
             }
 
             if self.compression == XcfCompression::Rle {
@@ -578,19 +583,17 @@ impl XcfCreator {
                     offset_index
                 );
 
+                for _tile in &tiles {
+                    self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, offset_index); // offset[n]
+                }
+                self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, 0); // offset[2]
+
                 let mut tile_inc = 0;
                 let mut tiles_headers_len = 0;
-                for tile in tiles {
+                for tile in &tiles {
                     tile_inc += 1;
 
                     let tile_index = offset_index as u32 + 16 + nb_of_tiles * 8 + tiles_body.len() as u32;
-                    println!(
-                        "tile_index : {} + {} + {} = {}",
-                        offset_index,
-                        tiles_headers.len(),
-                        tiles_body.len(),
-                        tile_index
-                    );
                     self.buf_extend_u32(&mut tiles_headers, &mut tiles_headers_len, tile_index);
                     self.buf_extend_u32(&mut tiles_headers, &mut tiles_headers_len, 0);
                     tiles_headers_len = 0;
@@ -624,21 +627,15 @@ impl XcfCreator {
                     }
                 }
 
-                self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, offset_index); // offset[0]
-                if nb_tiles > 1 {
-                    let last_offset = offset_index + tiles_headers.len() as u64 + tiles_body.len() as u64 + 16;
-                    self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len,last_offset); // offset[1]
-                }
-                self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, 0); // offset[2]
                 hierarchy_data.extend_from_slice(&offset_data);
                 hierarchy_len += offset_len;
 
                 // hierarchy offset
                 self.buf_extend_u64(&mut layer_data, &mut layer_len, hierarchy_ofs); // hierarchy_ofs=
                 self.buf_extend_u64(&mut layer_data, &mut layer_len,0); // layer mask offset
+
                 layer_data.extend_from_slice(&hierarchy_data);
                 layer_len += hierarchy_len;
-
                 tiles_headers.extend_from_slice(&[0, 0, 0, 0]);
 
                 layer_data.extend_from_slice(&tiles_headers);
