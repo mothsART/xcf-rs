@@ -643,3 +643,40 @@ fn write_minimal_9x138_same_bytes() -> Result<(), Error> {
     assert_hash(xcf_file.1.to_str().expect(""), "2dae15bf4a97fdf6683de7ab69db0a083d6a320c");
     Ok(())
 }
+
+#[test]
+fn write_minimal_138x138_same_bytes() -> Result<(), Error> {
+    let width = 138;
+    let height = 138;
+    let mut xcf = XcfCreator::new(11, width, height, ColorType::Rgb);
+    xcf.add_properties(&vec![]);
+    let mut layers = vec![];
+
+    let mut pixels_layer_two = vec![];
+
+    for _i in 0..(width * height) {
+        pixels_layer_two.push(RgbaPixel::new(54, 201, 84, 0)); // #36c954
+    }
+
+    let pixels_layer_two: PixelData = PixelData {
+        width: width,
+        height: height,
+        pixels: pixels_layer_two,
+    };
+    let layer_two = Layer {
+        width: width,
+        height: height,
+        kind: LayerColorType {
+            kind: LayerColorValue::Rgb,
+            alpha: false,
+        },
+        name: "Background".to_string(),
+        pixels: pixels_layer_two,
+        properties: vec![],
+    };
+    layers.push(layer_two);
+    xcf.add_layers(&layers);
+    let xcf_file = create_file("minimal_138x138_same_pixels.xcf", &mut xcf)?;
+    assert_hash(xcf_file.1.to_str().expect(""), "973793f80d32b8505913c3fdddefc803428faae1");
+    Ok(())
+}

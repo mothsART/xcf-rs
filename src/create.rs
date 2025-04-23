@@ -522,20 +522,22 @@ impl XcfCreator {
                 tiles.push(vec![]);
             }
 
-            let mut tile_inc = 0;
-            let mut tile_index = 0;
+            let mut pixel_index = 0;
+            let mut x = 0;
+            let mut y = 1;
             for pixel in &layer.pixels.pixels {
-                if tile_inc >= layer.width * 64 {
-                    tile_index += 1;
-                    tile_inc = 0;
+                pixel_index += 1;
+                x += 1;
+
+                let tile_x = (x as f32 / 64.0).ceil();
+                let tile_y = (y as f32 / 64.0).ceil();
+
+                tiles[tile_width_nb as usize * (tile_y as usize - 1) + tile_x as usize - 1].push(*pixel);
+
+                if pixel_index % layer.width == 0 {
+                    y += 1;
+                    x = 0;
                 }
-                //let tile_index = (inc -1) % seq_lenght / ((tile_width_nb - 1) * 64 + tile_width_remainder);
-                tiles[tile_index as usize].push(*pixel);
-                tile_inc += 1;
-            }
-            
-            for t in &tiles {
-                println!("t : {}", t.len());
             }
 
             if self.compression == XcfCompression::Rle {
@@ -640,7 +642,6 @@ impl XcfCreator {
 
                 layer_data.extend_from_slice(&tiles_headers);
                 layer_data.extend_from_slice(&tiles_body);
-                println!("head : {}, body : {}\n", tiles_headers.len(), tiles_body.len());
                 layer_len += tiles_headers.len() as u32 + tiles_body.len() as u32;
                 self.index += layer_len as u64;
             } else {
