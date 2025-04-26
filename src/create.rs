@@ -540,6 +540,17 @@ impl XcfCreator {
                 }
             }
 
+            /*
+            let mut inc = 0;
+            for _t in &tiles {
+                inc +=1;
+                println!("tile[{}] = length {}", inc, _t.len());
+                if inc == 1 {
+                    println!("tile : \n\n {:?}", tiles[0]);
+                }
+            }
+            */
+
             if self.compression == XcfCompression::Rle {
                 /*
                 let pixels_index = self.index + layer_index as u64 * 8 + nb_layers as u64 * 8 + layer_len as u64;
@@ -612,16 +623,25 @@ impl XcfCreator {
                             buffer_a.push(pixel.a());
                         }
                     }
+                    // f6 00 36 ff ff 00 36 ff ff 00 36 01 ff
+                    // f4 00 c9 ff 00 00 c9 ff 00 00 c9 ff 00
+                    // f4 00 54 ff 00 00 54 ff 00 00 54 ff 00
 
                     let rle_r = rle_compress(&buffer_r);
                     tile_len += rle_r.len();
+                    //println!("buffer r : {:?}", buffer_r);
+                    //println!("rle r : {:?}", rle_r);
                     tiles_body.extend(rle_r);
+
                     let rle_g = rle_compress(&buffer_g);
                     tile_len += rle_g.len();
                     tiles_body.extend(rle_g);
-                    let rle_b = rle_compress(&buffer_b);
+
+
+                    let  rle_b = rle_compress(&buffer_b);
                     tile_len += rle_b.len();
                     tiles_body.extend(rle_b);
+
                     if layer_has_alpha {
                         let rle_a = rle_compress(&buffer_a);
                         tile_len += rle_a.len();
@@ -664,12 +684,13 @@ impl XcfCreator {
 pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
     let mut compress_data = vec![];
     let mut last_byte = None;
+    let mut short_diff_len = 0;
     let mut short_identical_len = 0;
     let mut verbatim = vec![];
     let mut count = 0;
     for byte in data {
         count += 1;
-        //let verbatim_len = verbatim.iter().len();
+        //println!("verbatim : {:?}, i : {}, d : {}", verbatim, short_identical_len, short_diff_len);
         if let Some(val) = last_byte {
             if *byte == val {
                 /*
@@ -679,6 +700,19 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
                     verbatim = vec![];
                 }
                 */
+                /*
+                println!("same : {:?}, i : {}, d : {}", verbatim, short_identical_len, short_diff_len);
+                if short_identical_len > 0 {
+                    println!("short_diff_len {}, verbatim : {:?}", short_diff_len, verbatim);
+                    compress_data.push((256 - verbatim.len()) as u8);
+                    compress_data.extend_from_slice(&verbatim);
+                    verbatim = vec![];
+                    short_diff_len = 0;
+                }
+                */
+                if short_identical_len > 0 {
+                    short_diff_len = 0;
+                }
                 verbatim.push(val);
                 short_identical_len += 1;
                 continue;
@@ -699,17 +733,24 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         }
         */
         short_identical_len = 0;
+        short_diff_len += 1;
         verbatim.push(*byte);
         last_byte = Some(*byte);
     }
 
-    let verbatim_len = verbatim.iter().len();
+    let verbatim_len = verbatim.len();
     if verbatim_len == 1 {
         compress_data.push(0);
     }
     else if short_identical_len > 0 && verbatim_len >= 1 && verbatim_len <= 126 {
-        compress_data.push(short_identical_len as u8);
-        verbatim = vec![last_byte.unwrap()];
+        if short_diff_len > 0 {
+            compress_data.push((256 - verbatim.len()) as u8);
+            compress_data.extend_from_slice(&verbatim);
+            verbatim = vec![];
+        } else {
+            compress_data.push(short_identical_len as u8);
+            verbatim = vec![last_byte.unwrap()];
+        }
     }
     else if verbatim_len >= 128 {
         // verbatim_len = p*256+q

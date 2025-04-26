@@ -27,6 +27,23 @@ fn rle_compression_four_pixels() {
 }
 
 #[test]
+fn rle_compression_12_pixels() {
+    assert_eq!(
+        rle_compress(&vec![0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 255, 255]),
+        //vec![246, 0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 1, 255]
+        vec![244, 0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 255, 255]
+    );
+    assert_eq!(
+        rle_compress(&vec![0, 201, 255, 0, 0, 201, 255, 0, 0, 201, 255, 0]),
+        vec![244, 0, 201, 255, 0, 0, 201, 255, 0, 0, 201, 255, 0]
+    );
+    assert_eq!(
+        rle_compress(&vec![0, 84, 255, 0, 0, 84, 255, 0, 0, 84, 255, 0]),
+        vec![244, 0, 84, 255, 0, 0, 84, 255, 0, 0, 84, 255, 0]
+    );
+}
+
+#[test]
 fn rle_compression_nine_pixels() {
     assert_eq!(
         rle_compress(&vec!(222, 36, 36, 222, 36, 48, 0, 219, 0)),
