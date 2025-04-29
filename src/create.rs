@@ -757,7 +757,7 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         let p = verbatim_len / 256;
         let q = verbatim_len % 256;
         let mut head = 128;
-        if short_identical_len > 0 {
+        if short_identical_len > 1 {
             head = 127;
             verbatim = vec![last_byte.unwrap()];
         }
