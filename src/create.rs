@@ -623,23 +623,24 @@ impl XcfCreator {
                             buffer_a.push(pixel.a());
                         }
                     }
-                    // f6 00 36 ff ff 00 36 ff ff 00 36 01 ff
-                    // f4 00 c9 ff 00 00 c9 ff 00 00 c9 ff 00
-                    // f4 00 54 ff 00 00 54 ff 00 00 54 ff 00
 
                     let rle_r = rle_compress(&buffer_r);
                     tile_len += rle_r.len();
-                    //println!("buffer r : {:?}", buffer_r);
-                    //println!("rle r : {:?}\n\n", rle_r);
+                    println!("buffer r : {:?}", buffer_r);
+                    println!("rle r : {:?}\n\n", rle_r);
                     tiles_body.extend(rle_r);
 
                     let rle_g = rle_compress(&buffer_g);
                     tile_len += rle_g.len();
+                    //println!("buffer g : {:?}", buffer_g);
+                    //println!("rle g : {:?}\n\n", rle_g);
                     tiles_body.extend(rle_g);
 
 
                     let  rle_b = rle_compress(&buffer_b);
                     tile_len += rle_b.len();
+                    //println!("buffer b : {:?}", buffer_b);
+                    //println!("rle b : {:?}\n\n", rle_b);
                     tiles_body.extend(rle_b);
 
                     if layer_has_alpha {
@@ -695,7 +696,7 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
             if *byte == val {
                 //println!("&&&& same -- i: {}, d: {}, v: {:?}", short_identical_len, short_diff_len, verbatim);
                 if short_identical_len > 0 && short_diff_len > 0 && verbatim.len() < 127 {
-                    println!("&&&& same -- i: {}, d: {}", short_identical_len, short_diff_len);
+                    //println!("&&&& same -- i: {}, d: {}", short_identical_len, short_diff_len);
                     compress_data.push((256 - verbatim.len() + 2) as u8);
                     compress_data.extend_from_slice(&verbatim[..verbatim.len()-2]);
                     short_diff_len = 0;
@@ -756,6 +757,12 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
             }
             verbatim = vec![];
         } else {
+            if short_identical_len < 2 && short_identical_len + 1 < verbatim.len() {
+                //println!("lol {}, v: {:?} r: {:?}", short_identical_len, verbatim, &verbatim[..verbatim.len() - short_identical_len - 1]);
+                compress_data.push((256 - verbatim.len() - short_diff_len) as u8);
+                compress_data.extend_from_slice(&verbatim[..verbatim.len() - short_identical_len - 1]);
+            }
+            //println!("coco -- i: {}, d: {}, v: {:?}", short_identical_len, short_diff_len, verbatim);
             compress_data.push(short_identical_len as u8);
             verbatim = vec![last_byte.unwrap()];
         }

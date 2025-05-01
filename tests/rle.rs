@@ -18,11 +18,10 @@ fn rle_compression_four_pixels() {
         rle_compress(&vec!(0, 0, 114, 121)),
         vec!(1, 0, 254, 114, 121)
     );
-
-    //assert_eq!(
-    //    rle_compress(&vec![183, 209, 209]),
-    //    vec![253, 183, 209, 209]
-    //);
+    assert_eq!(
+        rle_compress(&vec![183, 209, 209]),
+        vec![253, 183, 1, 209]
+    );
 }
 
 #[test]
@@ -43,13 +42,18 @@ fn rle_compression_12_pixels() {
 
 #[test]
 fn rle_compression_7x1_diff_pixels() {
-    // 02 00 ff 36  02 ff
     assert_eq!(
         rle_compress(&vec![0, 0, 0, 54, 255, 255, 255]),
         vec![2, 0, 255, 54, 2, 255]
     );
-
-    // 02 00 fc c9 ff ff 00 02 00 fc 54 ff ff 00
+    assert_eq!(
+        rle_compress(&vec![0, 0, 0, 201, 255, 255, 0]),
+        vec![2, 0, 252, 201, 255, 255, 0]
+    );
+    assert_eq!(
+        rle_compress(&vec![0, 0, 0, 84, 255, 255, 0]),
+        vec![2, 0, 252, 84, 255, 255, 0]
+    );
 }
 
 #[test]
