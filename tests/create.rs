@@ -724,7 +724,7 @@ fn write_minimal_12x1_diff_bytes() -> Result<(), Error> {
 #[test]
 fn write_minimal_12x12_diff_bytes() -> Result<(), Error> {
     let width = 12;
-    let height = 11;
+    let height = 12;
     let mut xcf = XcfCreator::new(11, width, height, ColorType::Rgb);
     xcf.add_properties(&vec![]);
     let mut layers = vec![];
@@ -757,7 +757,47 @@ fn write_minimal_12x12_diff_bytes() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_12x12_diff_pixels.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "e231e981327766a738a6493be971ebcb1612dcc6");
+    assert_hash(xcf_file.1.to_str().expect(""), "5e64a49cf6d3c1557907c5d6aa482a50b99ab07b");
     Ok(())
 }
 
+#[test]
+fn write_minimal_7x1_diff_bytes() -> Result<(), Error> {
+    let width = 7;
+    let height = 1;
+    let mut xcf = XcfCreator::new(11, width, height, ColorType::Rgb);
+    xcf.add_properties(&vec![]);
+    let mut layers = vec![];
+
+    let mut pixels_layer_two = vec![];
+
+    pixels_layer_two.push(RgbaPixel::new(0, 0, 0, 0)); //rgb(0, 0, 0)
+    pixels_layer_two.push(RgbaPixel::new(0, 0, 0, 0)); //rgb(0, 0, 0)
+    pixels_layer_two.push(RgbaPixel::new(0, 0, 0, 0)); //rgb(0, 0, 0)
+    pixels_layer_two.push(RgbaPixel::new(54, 201, 84, 0)); // #36c954
+    pixels_layer_two.push(RgbaPixel::new(255, 255, 255, 0)); //rgb(255, 255, 255)
+    pixels_layer_two.push(RgbaPixel::new(255, 255, 255, 0)); //rgb(255, 255, 255)
+    pixels_layer_two.push(RgbaPixel::new(255, 0, 0, 0)); //rgb(255, 0, 0)
+
+    let pixels_layer_two: PixelData = PixelData {
+        width: width,
+        height: height,
+        pixels: pixels_layer_two,
+    };
+    let layer_two = Layer {
+        width: width,
+        height: height,
+        kind: LayerColorType {
+            kind: LayerColorValue::Rgb,
+            alpha: false,
+        },
+        name: "Background".to_string(),
+        pixels: pixels_layer_two,
+        properties: vec![],
+    };
+    layers.push(layer_two);
+    xcf.add_layers(&layers);
+    let xcf_file = create_file("minimal_7x1_diff_pixels.xcf", &mut xcf)?;
+    assert_hash(xcf_file.1.to_str().expect(""), "a2278ac88fafa1a08941f2c742e9f3afd88b2523");
+    Ok(())
+}
