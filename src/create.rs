@@ -744,8 +744,16 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
     }
     else if short_identical_len > 0 && verbatim.len() >= 1 && verbatim.len() <= 126 {
         if short_diff_len > 0 {
-            compress_data.push((256 - verbatim.len()) as u8);
-            compress_data.extend_from_slice(&verbatim);
+            if verbatim.len() > 1 && verbatim[verbatim.len() - 1] == verbatim[verbatim.len() -2] {
+                compress_data.push((256 - verbatim.len() + 2) as u8);
+                compress_data.extend_from_slice(&verbatim[..verbatim.len() - 2]);
+                compress_data.push(1);
+                compress_data.push(verbatim[verbatim.len() - 1]);
+            }
+            else {
+                compress_data.push((256 - verbatim.len()) as u8);
+                compress_data.extend_from_slice(&verbatim);
+            }
             verbatim = vec![];
         } else {
             compress_data.push(short_identical_len as u8);

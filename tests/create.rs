@@ -26,14 +26,16 @@ fn assert_hash(path: &str, expected_hash: &str) {
     assert_eq!(expected_hash, hash);
 }
 
-fn create_file(file_name: &'static str, xcf: &mut XcfCreator)-> Result<(File, PathBuf), Error> {
+fn create_file(file_name: &'static str, xcf: &mut XcfCreator)-> Result<(File, PathBuf, PathBuf), Error> {
     let dest_dir = Path::new("tests/samples/create");
+    let compare_dir = Path::new("tests/samples");
 
     if let Err(_e) = create_dir(dest_dir) {}
 
     let path = dest_dir.join(file_name);
+    let compare_path = compare_dir.join(file_name);
     let new_file = xcf.save(&path)?;
-    Ok((new_file, path))
+    Ok((new_file, path, compare_path))
 }
 
 #[test]
@@ -43,7 +45,9 @@ fn write_minimal_xcf1() -> Result<(), Error> {
     xcf.add_properties(&properties);
     xcf.add_layers(&vec![]);
     let xcf_file = create_file("minimal_xcf1.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "9e54fb4fc2658de528398a66cc684ada35866807");
+    let file_hash = "9e54fb4fc2658de528398a66cc684ada35866807";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -54,7 +58,9 @@ fn write_minimal_xcf3() -> Result<(), Error> {
     xcf.add_properties(&properties);
     xcf.add_layers(&vec![]);
     let xcf_file = create_file("minimal_xcf3.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "1b9d7187a9b783cd3ce16790ab1ebe7a05eac119");
+    let file_hash = "1b9d7187a9b783cd3ce16790ab1ebe7a05eac119";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -65,7 +71,9 @@ fn write_minimal_xcf10() -> Result<(), Error> {
     xcf.add_properties(&properties);
     xcf.add_layers(&vec![]);
     let xcf_file = create_file("minimal_xcf10.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "72dbe0106f48fb25d0fd047acf519f13a3dff086");
+    let file_hash = "72dbe0106f48fb25d0fd047acf519f13a3dff086";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -96,7 +104,9 @@ fn write_minimal_xcf11() -> Result<(), Error> {
     layers.push(layer_one);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_xcf11.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "6d6e2decc5c6393e83c6ac255e99fdf6617c4a95");
+    let file_hash = "6d6e2decc5c6393e83c6ac255e99fdf6617c4a95";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -260,7 +270,9 @@ fn write_minimal_xcf11_properties() -> Result<(), Error> {
     layers.push(layer_one);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_xcf11_properties.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "6d6e2decc5c6393e83c6ac255e99fdf6617c4a95");
+    let file_hash = "6d6e2decc5c6393e83c6ac255e99fdf6617c4a95";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -294,7 +306,8 @@ fn write_minimal_four_pixels() -> Result<(), Error> {
     layers.push(layer_one);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_four_pixels.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "8c4c60c226cd932f4c93dff6ce9ccdc3acc7fbde");
+    let file_hash = "8c4c60c226cd932f4c93dff6ce9ccdc3acc7fbde";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -333,7 +346,9 @@ fn write_minimal_nine_pixels() -> Result<(), Error> {
     layers.push(layer_one);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_nine_pixels.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "e1748ff2086655bfbcdad61ca4cf27bc7522ab50");
+    let file_hash = "e1748ff2086655bfbcdad61ca4cf27bc7522ab50";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -385,7 +400,9 @@ fn write_minimal_one_pixel_two_layers() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_one_pixel_two_layers.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "04ce4639d6d8168cedd5a6d8067b3babb7e2b432");
+    let file_hash = "04ce4639d6d8168cedd5a6d8067b3babb7e2b432";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -446,7 +463,9 @@ fn write_minimal_9x3() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_9x3_pixels.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "b69e3fd8815cffdf722dd440ec5076060e4cde6a");
+    let file_hash = "b69e3fd8815cffdf722dd440ec5076060e4cde6a";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    //assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -488,7 +507,9 @@ fn write_minimal_9x9() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_9x9_pixels.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "a1ea8f2e9be410533cbfd81d0dc90835e064767f");
+    let file_hash = "a1ea8f2e9be410533cbfd81d0dc90835e064767f";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    //assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -530,7 +551,9 @@ fn write_minimal_9x15_diff_bytes() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_9x15_pixels.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "5538a716959ce0b366876e995bc08ae4fc070835");
+    let file_hash = "5538a716959ce0b366876e995bc08ae4fc070835";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    //assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -566,7 +589,11 @@ fn write_minimal_9x15_same_bytes() -> Result<(), Error> {
     };
     layers.push(layer_two);
     xcf.add_layers(&layers);
-    let xcf_file = create_file("minimal_9x15_same_pixels.xcf", &mut xcf)?;    Ok(())
+    let xcf_file = create_file("minimal_9x15_same_pixels.xcf", &mut xcf)?;
+    let file_hash = "26f5928d28bf68d68c7563885cb42b1174ad1b2a";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
+    Ok(())
 }
 
 #[test]
@@ -602,7 +629,9 @@ fn write_minimal_9x65_same_bytes() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_9x65_same_pixels.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "07f2c58bcc5f33a1bb40b36c307d2adac3f126a3");
+    let file_hash = "07f2c58bcc5f33a1bb40b36c307d2adac3f126a3";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    //assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -641,6 +670,7 @@ fn write_minimal_9x138_same_bytes() -> Result<(), Error> {
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_9x138_same_pixels.xcf", &mut xcf)?;
     assert_hash(xcf_file.1.to_str().expect(""), "2dae15bf4a97fdf6683de7ab69db0a083d6a320c");
+    //assert_hash(xcf_file.2.to_str().expect(""), "2dae15bf4a97fdf6683de7ab69db0a083d6a320c");
     Ok(())
 }
 
@@ -677,7 +707,9 @@ fn write_minimal_138x138_same_bytes() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_138x138_same_pixels.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "973793f80d32b8505913c3fdddefc803428faae1");
+    let file_hash = "973793f80d32b8505913c3fdddefc803428faae1";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    //assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -717,7 +749,9 @@ fn write_minimal_12x1_diff_bytes() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_12x1_diff_pixels.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "cb68ba7b92face2105106ffde2b62a4f242d3764");
+    let file_hash = "ce5d0222bbca735fdfb81de03a4fdf1272e0190e";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -757,7 +791,9 @@ fn write_minimal_12x12_diff_bytes() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_12x12_diff_pixels.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "5e64a49cf6d3c1557907c5d6aa482a50b99ab07b");
+    let file_hash = "5e64a49cf6d3c1557907c5d6aa482a50b99ab07b";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    //assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -798,6 +834,8 @@ fn write_minimal_7x1_diff_bytes() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_7x1_diff_pixels.xcf", &mut xcf)?;
-    assert_hash(xcf_file.1.to_str().expect(""), "a2278ac88fafa1a08941f2c742e9f3afd88b2523");
+    let file_hash = "a2278ac88fafa1a08941f2c742e9f3afd88b2523";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
