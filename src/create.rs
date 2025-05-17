@@ -626,8 +626,8 @@ impl XcfCreator {
 
                     let rle_r = rle_compress(&buffer_r);
                     tile_len += rle_r.len();
-                    println!("buffer r : {:?}", buffer_r);
-                    println!("rle r : {:?}\n\n", rle_r);
+                    //println!("buffer r : {:?}", buffer_r);
+                    //println!("rle r : {:?}\n\n", rle_r);
                     tiles_body.extend(rle_r);
 
                     let rle_g = rle_compress(&buffer_g);
@@ -635,7 +635,6 @@ impl XcfCreator {
                     //println!("buffer g : {:?}", buffer_g);
                     //println!("rle g : {:?}\n\n", rle_g);
                     tiles_body.extend(rle_g);
-
 
                     let  rle_b = rle_compress(&buffer_b);
                     tile_len += rle_b.len();
@@ -645,7 +644,10 @@ impl XcfCreator {
 
                     if layer_has_alpha {
                         let rle_a = rle_compress(&buffer_a);
+                        //let rle_a = vec![255, 254, 127, 9, 195, 255];
                         tile_len += rle_a.len();
+                        //println!("buffer a : {:?}", buffer_a);
+                        //println!("rle a : {:?}\n\n", rle_a);
                         tiles_body.extend(rle_a);
                     }
                 }
@@ -694,20 +696,22 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         //println!("recurrent -- i: {}, d: {}, v: {:?}", short_identical_len, short_diff_len, verbatim);
         if let Some(val) = last_byte {
             if *byte == val {
+                //break;
                 //println!("&&&& same -- i: {}, d: {}, v: {:?}", short_identical_len, short_diff_len, verbatim);
-                if short_identical_len > 0 && short_diff_len > 0 && verbatim.len() < 127 {
+                if short_identical_len > 0 && short_diff_len > 0 && verbatim.len() < 127 && verbatim.len() != 2 {
                     //println!("&&&& same -- i: {}, d: {}", short_identical_len, short_diff_len);
                     compress_data.push((256 - verbatim.len() + 2) as u8);
                     compress_data.extend_from_slice(&verbatim[..verbatim.len()-2]);
                     short_diff_len = 0;
                 }
-                if short_identical_len > 0 && short_diff_len > 0 && verbatim.len() > 126 {
+                if short_identical_len > 1 && short_diff_len > 0 && verbatim.len() >= 127 {
                     // verbatim_len = p*256+q
                     let p = verbatim.len() / 256;
                     let q = verbatim.len() % 256;
                     let head = 127;
-                    verbatim = vec![last_byte.unwrap()];
                     compress_data.extend_from_slice(&[head, p as u8, q as u8]);
+                    //compress_data.extend_from_slice(&vec![last_byte.unwrap()]);
+                    verbatim = vec![];
                     short_diff_len = 0;
                 }
                 if short_identical_len > 0 {
@@ -735,6 +739,14 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
             compress_data.push(last_byte.unwrap());
             verbatim = vec![];
         }
+        //if short_identical_len > 1 && verbatim.len() >= 127 {
+        //    // verbatim_len = p*256+q
+        //    let p = verbatim.len() / 256;
+        //    let q = verbatim.len() % 256;
+        //    compress_data.extend_from_slice(&[128, p as u8, q as u8]);
+        //    compress_data.extend_from_slice(&verbatim);
+        //    verbatim = vec![];
+        //}
         short_identical_len = 0;
         verbatim.push(*byte);
         last_byte = Some(*byte);
