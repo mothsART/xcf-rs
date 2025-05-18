@@ -470,10 +470,7 @@ impl XcfCreator {
             let mut layer_len = 0;
 
             let tile_width_nb = 1 + layer.width / 64;
-            //let tile_width_remainder = layer.width % 64;
             let tile_height_nb = 1 + layer.height / 64;
-            //let tile_height_remainder = layer.height % 64;
-            let nb_tiles = tile_width_nb * tile_height_nb;
 
             // Each layers is 8 bits + 8 bits for close layers + 8 bits for close channels
             let layer_offset = self.index + (nb_layers - layer_index + 1) as u64 * 8 + layer_len as u64 + 16;
@@ -570,7 +567,6 @@ impl XcfCreator {
                 }
 
                 //let tile_pointer_size = 8 * nb_of_tiles + 4;
-                let mut tile_len = 0;
 
                 let mut offset_data = vec![];
                 let mut offset_len = 0;
@@ -599,10 +595,8 @@ impl XcfCreator {
                 }
                 self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, 0); // offset[2]
 
-                let mut tile_inc = 0;
                 let mut tiles_headers_len = 0;
                 for tile in &tiles {
-                    tile_inc += 1;
 
                     let tile_index = offset_index as u32 + 16 + nb_of_tiles * 8 + tiles_body.len() as u32;
                     self.buf_extend_u32(&mut tiles_headers, &mut tiles_headers_len, tile_index);
@@ -623,19 +617,16 @@ impl XcfCreator {
                     }
 
                     let rle_r = rle_compress(&buffer_r);
-                    tile_len += rle_r.len();
                     println!("buffer r : {:?}", buffer_r);
                     println!("rle r : {:?}\n\n", rle_r);
                     tiles_body.extend(rle_r);
 
                     let rle_g = rle_compress(&buffer_g);
-                    tile_len += rle_g.len();
                     //println!("buffer g : {:?}", buffer_g);
                     //println!("rle g : {:?}\n\n", rle_g);
                     tiles_body.extend(rle_g);
 
                     let  rle_b = rle_compress(&buffer_b);
-                    tile_len += rle_b.len();
                     //println!("buffer b : {:?}", buffer_b);
                     //println!("rle b : {:?}\n\n", rle_b);
                     tiles_body.extend(rle_b);
@@ -643,7 +634,6 @@ impl XcfCreator {
                     if layer_has_alpha {
                         let rle_a = rle_compress(&buffer_a);
                         //let rle_a = vec![255, 254, 127, 9, 195, 255];
-                        tile_len += rle_a.len();
                         //println!("buffer a : {:?}", buffer_a);
                         //println!("rle a : {:?}\n\n", rle_a);
                         tiles_body.extend(rle_a);
