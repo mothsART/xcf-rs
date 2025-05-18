@@ -885,9 +885,8 @@ fn write_minimal_9x9_diff_bytes() -> Result<(), Error> {
     Ok(())
 }
 
-/*
 #[test]
-fn write_minimal_yolo_bytes() -> Result<(), Error> {
+fn write_minimal_36x36_bytes() -> Result<(), Error> {
     let width = 36;
     let height = 36;
     let mut xcf = XcfCreator::new(11, width, height, ColorType::Rgb);
@@ -899,9 +898,8 @@ fn write_minimal_yolo_bytes() -> Result<(), Error> {
     for _i in 0..(width * height / 3) {
         let mut v = 255;
         if _i == 0 || _i == (width * height / 3) - 1 {
-            v = 254;
+            v = 111;
         }
-        println!("inc : {}, v : {}", _i, v);
         pixels_layer_two.push(RgbaPixel::new(v, v, v, 0)); //rgb(255, 255, 255)
         pixels_layer_two.push(RgbaPixel::new(v, v, v, 0)); //rgb(255, 255, 255)
         pixels_layer_two.push(RgbaPixel::new(v, v, v, 0)); //rgb(255, 255, 255)
@@ -925,10 +923,9 @@ fn write_minimal_yolo_bytes() -> Result<(), Error> {
     };
     layers.push(layer_two);
     xcf.add_layers(&layers);
-    let xcf_file = create_file("minimal_50x50_diff_pixels.xcf", &mut xcf)?;
-    let file_hash = "e01c7ae5333cd429b37770af1249626fb3ac19d9";
+    let xcf_file = create_file("minimal_36x36_diff_pixels.xcf", &mut xcf)?;
+    let file_hash = "cb0d96781444565d9c98b3949dbb8bc83ca7de4a";
     assert_hash(xcf_file.1.to_str().expect(""), file_hash);
     assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
-*/

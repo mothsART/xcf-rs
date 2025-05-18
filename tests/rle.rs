@@ -43,6 +43,10 @@ fn rle_compression_12_pixels() {
 #[test]
 fn rle_compression_7x1_diff_pixels() {
     assert_eq!(
+        rle_compress(&vec![0, 0, 0, 54, 200, 200, 200]),
+        vec![2, 0, 255, 54, 2, 200]
+    );
+    assert_eq!(
         rle_compress(&vec![0, 0, 0, 54, 255, 255, 255]),
         vec![2, 0, 255, 54, 2, 255]
     );
@@ -165,8 +169,9 @@ fn rle_compression_9x9_diff_pixels() {
     );
 }
 
+
 #[test]
-fn rle_compression_30x30_same_pixels() {
+fn rle_compression_30x30_diff_pixels() {
     let raw = &vec![
         157, 160, 181, 203, 172, 161, 172, 182, 187, 158,
         165, 157, 158, 167, 156, 164, 156, 159, 184, 189,
@@ -388,13 +393,12 @@ fn rle_compression_diff_pixels() {
         rle_compress(raw),
         vec![
             2, 254,
-            127, 1, 44,
+            127, 1, 44, 255,
             2, 254
         ]
     );
 }
 
-/*
 #[test]
 fn rle_compression_diff2_pixels() {
     let raw = &vec![
@@ -425,9 +429,8 @@ fn rle_compression_diff2_pixels() {
         rle_compress(raw),
         vec![
             255, 254,
-            127, 1, 44,
-            255, 254
+            127, 1, 44, 255,
+            0, 254
         ]
     );
 }
-*/
