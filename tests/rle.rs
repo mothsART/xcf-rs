@@ -20,7 +20,7 @@ fn rle_compression_four_pixels() {
     );
     assert_eq!(
         rle_compress(&vec![183, 209, 209]),
-        vec![253, 183, 1, 209]
+        vec![255, 183, 1, 209]
     );
 }
 
@@ -396,7 +396,7 @@ fn rle_compression_diff_pixels() {
 
 /*
 #[test]
-fn rle_compression_diff_pixels() {
+fn rle_compression_diff2_pixels() {
     let raw = &vec![
         254,
 
@@ -420,6 +420,7 @@ fn rle_compression_diff_pixels() {
 
         254
     ];
+    println!("len {}", raw.len());
     assert_eq!(
         rle_compress(raw),
         vec![
@@ -429,4 +430,4 @@ fn rle_compression_diff_pixels() {
         ]
     );
 }
- */
+*/

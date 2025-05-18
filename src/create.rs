@@ -709,9 +709,7 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
                 }
                 continue;
             }
-            if verbatim.len() > 2 {
-                short_diff_len += 1;
-            }
+            short_diff_len += 1;
         }
         if count == 3 && short_identical_len + 2 == count {
             compress_data.push(short_identical_len as u8);
@@ -725,18 +723,6 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
             compress_data.push(last_byte.unwrap());
             verbatim = vec![];
         }
-        /*
-        println!(">>> inc, s {}", short_identical_len);
-        if short_identical_len > 1 && verbatim.len() >= 127 {
-            // verbatim_len = p*256+q
-            let p = verbatim.len() / 256;
-            let q = verbatim.len() % 256;
-            println!(">>> full, p {}, q {}, s {}", p, q, short_identical_len);
-            compress_data.extend_from_slice(&[128, p as u8, q as u8]);
-            compress_data.extend_from_slice(&verbatim);
-            verbatim = vec![];
-        }
-        */
         short_identical_len = 0;
         verbatim.push(*byte);
         last_byte = Some(*byte);
