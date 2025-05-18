@@ -576,26 +576,24 @@ impl XcfCreator {
                 let mut offset_len = 0;
                 //let hierarchy_ofs = self.index + layer_index as u64 * 8 + nb_layers as u64 * 8 + 8 + layer_len as u64 + 8;
                 let hierarchy_ofs =  layer_offset + layer_len as u64 + 16;
-                println!(
-                    "hierarchy_ofs : {} + {} = {}",
-                    layer_offset,
-                    layer_len,
-                    hierarchy_ofs
-                );
-    
+                //println!(
+                //    "hierarchy_ofs : {} + {} = {}",
+                //    layer_offset,
+                //    layer_len,
+                //    hierarchy_ofs
+                //);
                 self.buf_extend_u32(&mut offset_data, &mut offset_len,layer.pixels.width); // level[0] width
                 self.buf_extend_u32(&mut offset_data, &mut offset_len,layer.pixels.height); // level[0] height
                 self.buf_extend_u32(&mut offset_data, &mut offset_len,0); // ptr : Pointer to tile data
     
                 let offset_index = hierarchy_ofs + offset_len as u64 + nb_of_tiles as u64 * 8 + 8;
-                println!(
-                    "offset_index : {} + {} + {} + 8 = offset_index = {}", 
-                    hierarchy_ofs,
-                    offset_len,
-                    nb_of_tiles,
-                    offset_index
-                );
-
+                //println!(
+                //    "offset_index : {} + {} + {} + 8 = offset_index = {}",
+                //    hierarchy_ofs,
+                //    offset_len,
+                //    nb_of_tiles,
+                //    offset_index
+                //);
                 for _tile in &tiles {
                     self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, offset_index); // offset[n]
                 }
@@ -626,8 +624,8 @@ impl XcfCreator {
 
                     let rle_r = rle_compress(&buffer_r);
                     tile_len += rle_r.len();
-                    //println!("buffer r : {:?}", buffer_r);
-                    //println!("rle r : {:?}\n\n", rle_r);
+                    println!("buffer r : {:?}", buffer_r);
+                    println!("rle r : {:?}\n\n", rle_r);
                     tiles_body.extend(rle_r);
 
                     let rle_g = rle_compress(&buffer_g);
@@ -696,8 +694,6 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         //println!("recurrent -- i: {}, d: {}, v: {:?}", short_identical_len, short_diff_len, verbatim);
         if let Some(val) = last_byte {
             if *byte == val {
-                //break;
-                //println!("&&&& same -- i: {}, d: {}, v: {:?}", short_identical_len, short_diff_len, verbatim);
                 if short_identical_len > 0 && short_diff_len > 0 && verbatim.len() < 127 && verbatim.len() != 2 {
                     //println!("&&&& same -- i: {}, d: {}", short_identical_len, short_diff_len);
                     compress_data.push((256 - verbatim.len() + 2) as u8);
@@ -739,14 +735,18 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
             compress_data.push(last_byte.unwrap());
             verbatim = vec![];
         }
-        //if short_identical_len > 1 && verbatim.len() >= 127 {
-        //    // verbatim_len = p*256+q
-        //    let p = verbatim.len() / 256;
-        //    let q = verbatim.len() % 256;
-        //    compress_data.extend_from_slice(&[128, p as u8, q as u8]);
-        //    compress_data.extend_from_slice(&verbatim);
-        //    verbatim = vec![];
-        //}
+        /*
+        println!(">>> inc, s {}", short_identical_len);
+        if short_identical_len > 1 && verbatim.len() >= 127 {
+            // verbatim_len = p*256+q
+            let p = verbatim.len() / 256;
+            let q = verbatim.len() % 256;
+            println!(">>> full, p {}, q {}, s {}", p, q, short_identical_len);
+            compress_data.extend_from_slice(&[128, p as u8, q as u8]);
+            compress_data.extend_from_slice(&verbatim);
+            verbatim = vec![];
+        }
+        */
         short_identical_len = 0;
         verbatim.push(*byte);
         last_byte = Some(*byte);
@@ -782,11 +782,16 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
     else if verbatim.len() >= 128 {
         // verbatim_len = p*256+q
         let p = verbatim.len() / 256;
-        let q = verbatim.len() % 256;
+        let mut q = verbatim.len() % 256;
         let mut head = 128;
         if short_identical_len > 1 {
             head = 127;
-            verbatim = vec![last_byte.unwrap()];
+            if verbatim.len() != short_identical_len + 1 {
+                q = q - short_identical_len - 1;
+                verbatim = vec![short_identical_len as u8, last_byte.unwrap()];
+            } else {
+                verbatim = vec![last_byte.unwrap()];
+            }
         }
         compress_data.extend_from_slice(&[head, p as u8, q as u8]);
     }
