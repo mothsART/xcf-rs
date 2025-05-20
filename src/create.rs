@@ -692,7 +692,7 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
                     short_diff_len = 0;
                     //println!(">>>>c{:?}, v: {:?}, v: {}, b: {}", compress_data, verbatim, val, byte);
                 }
-                if short_identical_len > 1 && short_diff_len > 0 && verbatim.len() >= 127 {
+                else if short_identical_len > 1 && short_diff_len > 0 && verbatim.len() >= 127 {
                     // verbatim_len = p*256+q
                     let p = verbatim.len() / 256;
                     let q = verbatim.len() % 256;
@@ -702,13 +702,27 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
                     verbatim = vec![];
                     short_identical_len = 0;
                     short_diff_len = 0;
+                } else if short_identical_len == 1 && short_diff_len > 2 && verbatim.len() >= 127 {
+                    //println!(">>>>v_len: {}, si {:?}, sd: {:?}, v: {}, b: {}", verbatim.len(), short_identical_len, short_diff_len, val, byte);
+                    //println!("verbatim : {:?}", verbatim);
+                    let new_verbatim = &verbatim[..verbatim.len() - 2];
+                    // verbatim_len = p*256+q
+                    let p = new_verbatim.len() / 256;
+                    let q = new_verbatim.len() % 256;
+                    let head = 128;
+                    compress_data.extend_from_slice(&[head, p as u8, q as u8]);
+                    compress_data.extend_from_slice(&new_verbatim);
+                    verbatim = vec![val, val];
+                    short_identical_len = 2;
+                    short_diff_len = 0;
+                    continue;
                 }
+                
                 if short_identical_len > 0 {
                     short_diff_len = 0;
                 }
                 verbatim.push(val);
                 short_identical_len += 1;
-                //println!("count: {}, verbatim len : {}, si: {}", count, verbatim.len(), short_identical_len);
                 continue;
             }
             //println!("ok b: {}, v: {}", byte, val);
@@ -741,6 +755,9 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         last_byte = Some(*byte);
     }
 
+    if verbatim.len() == 0 {
+        return compress_data;
+    }
     if verbatim.len() == 1 {
         compress_data.push(0);
     }
