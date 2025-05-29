@@ -469,8 +469,8 @@ impl XcfCreator {
             layer_index += 1;
             let mut layer_len = 0;
 
-            let tile_width_nb = 1 + layer.width / 64;
-            let tile_height_nb = 1 + layer.height / 64;
+            let tile_width_nb = 1 + layer.width / 65;
+            let tile_height_nb = 1 + layer.height / 65;
 
             // Each layers is 8 bits + 8 bits for close layers + 8 bits for close channels
             let layer_offset = self.index + (nb_layers - layer_index + 1) as u64 * 8 + layer_len as u64 + 16;

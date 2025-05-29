@@ -929,3 +929,49 @@ fn write_minimal_36x36_bytes() -> Result<(), Error> {
     assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
+
+#[test]
+fn write_minimal_1x64_bytes() -> Result<(), Error> {
+    let width = 1;
+    let height = 64;
+    let mut xcf = XcfCreator::new(11, width, height, ColorType::Rgb);
+    xcf.add_properties(&vec![]);
+    let mut layers = vec![];
+
+    let mut pixels_layer_one = vec![];
+
+    for _i in 0..32 {
+        let v = 255;
+        pixels_layer_one.push(RgbaPixel::new(v, v, v, 0)); //rgb(255, 255, 255)
+    }
+
+    for _i in 0..32 {
+        let v = 0;
+        pixels_layer_one.push(RgbaPixel::new(v, v, v, 0)); //rgb(0, 0, 0)
+    }
+
+
+    let pixels_layer_one: PixelData = PixelData {
+        width: width,
+        height: height,
+        pixels: pixels_layer_one,
+    };
+    let layer_one = Layer {
+        width: width,
+        height: height,
+        kind: LayerColorType {
+            kind: LayerColorValue::Rgb,
+            alpha: false,
+        },
+        name: "Background".to_string(),
+        pixels: pixels_layer_one,
+        properties: vec![],
+    };
+    layers.push(layer_one);
+    xcf.add_layers(&layers);
+    let xcf_file = create_file("minimal_1x72_diff_pixels.xcf", &mut xcf)?;
+    let file_hash = "8ce02afab48ca431ef6e6632a919e1fbd9f1be35";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
+    Ok(())
+}
