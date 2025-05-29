@@ -685,9 +685,15 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         if let Some(val) = last_byte {
             if *byte == val {
                 if short_identical_len > 0 && short_diff_len > 0 && verbatim.len() < 127 && verbatim.len() != 2 {
-                    compress_data.push((256 - verbatim.len() + 2) as u8);
-                    compress_data.extend_from_slice(&verbatim[..verbatim.len()-2]);
-                    verbatim = vec![val, val];
+                    if verbatim.len() == 4 {
+                        compress_data.push(1);
+                        compress_data.push(verbatim[0]);
+                        verbatim = vec![];
+                    } else {
+                        compress_data.push((256 - verbatim.len() + 2) as u8);
+                        compress_data.extend_from_slice(&verbatim[..verbatim.len()-2]);
+                        verbatim = vec![val, val];
+                    }
                     short_identical_len = 1;
                     short_diff_len = 0;
                     //println!(">>>>c{:?}, v: {:?}, v: {}, b: {}", compress_data, verbatim, val, byte);
