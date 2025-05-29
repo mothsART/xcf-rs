@@ -969,7 +969,7 @@ fn write_minimal_1x64_bytes() -> Result<(), Error> {
     };
     layers.push(layer_one);
     xcf.add_layers(&layers);
-    let xcf_file = create_file("minimal_1x72_diff_pixels.xcf", &mut xcf)?;
+    let xcf_file = create_file("minimal_1x64_diff_pixels.xcf", &mut xcf)?;
     let file_hash = "8ce02afab48ca431ef6e6632a919e1fbd9f1be35";
     assert_hash(xcf_file.1.to_str().expect(""), file_hash);
     assert_hash(xcf_file.2.to_str().expect(""), file_hash);
