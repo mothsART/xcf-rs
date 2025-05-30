@@ -997,7 +997,6 @@ fn write_minimal_1x64_bytes() -> Result<(), Error> {
         pixels_layer_one.push(RgbaPixel::new(v, v, v, 0)); //rgb(0, 0, 0)
     }
 
-
     let pixels_layer_one: PixelData = PixelData {
         width: width,
         height: height,
@@ -1018,6 +1017,54 @@ fn write_minimal_1x64_bytes() -> Result<(), Error> {
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_1x64_diff_pixels.xcf", &mut xcf)?;
     let file_hash = "8ce02afab48ca431ef6e6632a919e1fbd9f1be35";
+    assert_hash(xcf_file.1.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
+    Ok(())
+}
+
+fn create_layer(width: u32, height: u32, pixel_data: Vec<RgbaPixel>) -> Layer {
+    Layer {
+        width: width,
+        height: height,
+        kind: LayerColorType {
+            kind: LayerColorValue::Rgb,
+            alpha: false,
+        },
+        name: "Background".to_string(),
+        pixels: PixelData {
+            width: width,
+            height: height,
+            pixels: pixel_data,
+        },
+        properties: vec![],
+    }
+}
+
+#[test]
+fn write_minimal_128x129_diff_bytes() -> Result<(), Error> {
+    let width = 128;
+    let height = 129;
+    let mut xcf = XcfCreator::new(11, width, height, ColorType::Rgb);
+    xcf.add_properties(&vec![]);
+    let mut layers = vec![];
+
+    let mut pixels_layer_one = vec![];
+
+    for _i in 0..9000 {
+        pixels_layer_one.push(RgbaPixel::new(255, 255, 255, 0)); //rgb(255, 255, 255)
+    }
+    pixels_layer_one.push(RgbaPixel::new(0, 0,0, 0)); //rgb(0, 0, 0)
+    pixels_layer_one.push(RgbaPixel::new(0, 0,0, 0)); //rgb(0, 0, 0)
+
+    for _i in 0..7510 {
+        pixels_layer_one.push(RgbaPixel::new(255, 255, 255, 0)); //rgb(255, 255, 255)
+    }
+
+    let layer_one = create_layer(width, height, pixels_layer_one);
+    layers.push(layer_one);
+    xcf.add_layers(&layers);
+    let xcf_file = create_file("minimal_128x129_diff_pixels.xcf", &mut xcf)?;
+    let file_hash = "a4e992bb033a35d892a2402316e4c306197cd347";
     assert_hash(xcf_file.1.to_str().expect(""), file_hash);
     assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())

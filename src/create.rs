@@ -807,8 +807,10 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
                 //println!(">>>q: {}, identical_len: {}, v: {:?}", q, identical_len, verbatim);
                 if identical_len < q {
                     q = q - identical_len - 1;
+                } else {
+                    q = q + 2;
                 }
-                verbatim = vec![identical_len as u8, last_byte.unwrap()];
+                verbatim = vec![last_byte.unwrap()];
             } else {
                 verbatim = vec![last_byte.unwrap()];
             }
