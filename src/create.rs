@@ -12,6 +12,7 @@ use crate::data::layer::Layer;
 use crate::data::property::Property;
 use crate::data::property::PropertyPayload;
 use crate::data::xcf::XcfCompression;
+use crate::data::tiles::Tiles;
 use crate::LayerColorValue;
 use crate::PropertyIdentifier;
 use crate::RgbaPixel;
@@ -469,8 +470,7 @@ impl XcfCreator {
             layer_index += 1;
             let mut layer_len = 0;
 
-            let tile_width_nb = 1 + layer.width / 65;
-            let tile_height_nb = 1 + layer.height / 65;
+            let tiles = Tiles::new(layer);
 
             // Each layers is 8 bits + 8 bits for close layers + 8 bits for close channels
             let layer_offset = self.index + (nb_layers - layer_index + 1) as u64 * 8 + layer_len as u64 + 16;
@@ -513,10 +513,9 @@ impl XcfCreator {
 
             let mut tiles_headers = vec![];
             let mut tiles_body = vec![];
-            let mut tiles: Vec<Vec<RgbaPixel>> = vec![];
-            let nb_of_tiles = tile_width_nb * tile_height_nb;
-            for _x in 0..nb_of_tiles {
-                tiles.push(vec![]);
+            let mut tiles_pixels: Vec<Vec<RgbaPixel>> = vec![];
+            for _x in 0..tiles.nb {
+                tiles_pixels.push(vec![]);
             }
 
             let mut pixel_index = 0;
@@ -529,7 +528,15 @@ impl XcfCreator {
                 let tile_x = (x as f32 / 64.0).ceil();
                 let tile_y = (y as f32 / 64.0).ceil();
 
-                tiles[tile_width_nb as usize * (tile_y as usize - 1) + tile_x as usize - 1].push(*pixel);
+                //println!("tiles_len : {}, tile_width_nb: {}, y: {}, tile_y: {}, tile_x: {}, i: {}",
+                //    tiles.len(),
+                //    tile_width_nb,
+                //    y,
+                //    tile_y,
+                //    tile_x,
+                //    tile_width_nb as usize * (tile_y as usize - 1) + tile_x as usize - 1
+                //);
+                tiles_pixels[tiles.nb_width as usize * (tile_y as usize - 1) + tile_x as usize - 1].push(*pixel);
 
                 if pixel_index % layer.width == 0 {
                     y += 1;
@@ -582,23 +589,23 @@ impl XcfCreator {
                 self.buf_extend_u32(&mut offset_data, &mut offset_len,layer.pixels.height); // level[0] height
                 self.buf_extend_u32(&mut offset_data, &mut offset_len,0); // ptr : Pointer to tile data
     
-                let offset_index = hierarchy_ofs + offset_len as u64 + nb_of_tiles as u64 * 8 + 8;
+                let offset_index = hierarchy_ofs + offset_len as u64 + tiles.nb as u64 * 8 + 8;
                 //println!(
                 //    "offset_index : {} + {} + {} + 8 = offset_index = {}",
                 //    hierarchy_ofs,
                 //    offset_len,
-                //    nb_of_tiles,
+                //    tiles.nb,
                 //    offset_index
                 //);
-                for _tile in &tiles {
+                for _tile in &tiles_pixels {
                     self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, offset_index); // offset[n]
                 }
                 self.buf_extend_u64(&mut hierarchy_data, &mut hierarchy_len, 0); // offset[2]
 
                 let mut tiles_headers_len = 0;
-                for tile in &tiles {
-
-                    let tile_index = offset_index as u32 + 16 + nb_of_tiles * 8 + tiles_body.len() as u32;
+                for tile in &tiles_pixels {
+                    let tile_index = offset_index as u32 + 16 + tiles.nb * 8 + tiles_body.len() as u32;
+                    //println!("tile_index : {}, offset_index: {}, nb_of_tiles : {}, tiles_len : {}", tile_index, offset_index, nb_of_tiles, tiles_body.len());
                     self.buf_extend_u32(&mut tiles_headers, &mut tiles_headers_len, tile_index);
                     self.buf_extend_u32(&mut tiles_headers, &mut tiles_headers_len, 0);
                     tiles_headers_len = 0;
@@ -633,7 +640,6 @@ impl XcfCreator {
 
                     if layer_has_alpha {
                         let rle_a = rle_compress(&buffer_a);
-                        //let rle_a = vec![255, 254, 127, 9, 195, 255];
                         //println!("buffer a : {:?}", buffer_a);
                         //println!("rle a : {:?}\n\n", rle_a);
                         tiles_body.extend(rle_a);
@@ -675,16 +681,16 @@ impl XcfCreator {
 pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
     let mut compress_data = vec![];
     let mut last_byte = None;
-    let mut short_diff_len = 0;
-    let mut short_identical_len = 0;
+    let mut diff_len = 0;
+    let mut identical_len = 0;
     let mut verbatim = vec![];
     let mut count = 0;
     for byte in data {
         count += 1;
-        //println!("recurrent -- i: {}, d: {}, v: {:?}", short_identical_len, short_diff_len, verbatim);
+        //println!("recurrent -- i: {}, d: {}, v: {:?}", identical_len, diff_len, verbatim);
         if let Some(val) = last_byte {
             if *byte == val {
-                if short_identical_len > 0 && short_diff_len > 0 && verbatim.len() < 127 && verbatim.len() != 2 {
+                if identical_len > 0 && diff_len > 0 && verbatim.len() < 127 && verbatim.len() != 2 {
                     if verbatim.len() == 4 {
                         compress_data.push(1);
                         compress_data.push(verbatim[0]);
@@ -694,11 +700,11 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
                         compress_data.extend_from_slice(&verbatim[..verbatim.len()-2]);
                         verbatim = vec![val, val];
                     }
-                    short_identical_len = 1;
-                    short_diff_len = 0;
+                    identical_len = 1;
+                    diff_len = 0;
                     //println!(">>>>c{:?}, v: {:?}, v: {}, b: {}", compress_data, verbatim, val, byte);
                 }
-                else if short_identical_len > 1 && short_diff_len > 0 && verbatim.len() >= 127 {
+                else if identical_len > 1 && diff_len > 0 && verbatim.len() >= 127 {
                     // verbatim_len = p*256+q
                     let p = verbatim.len() / 256;
                     let q = verbatim.len() % 256;
@@ -706,10 +712,10 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
                     compress_data.extend_from_slice(&[head, p as u8, q as u8]);
                     //compress_data.extend_from_slice(&vec![last_byte.unwrap()]);
                     verbatim = vec![];
-                    short_identical_len = 0;
-                    short_diff_len = 0;
-                } else if short_identical_len == 1 && short_diff_len > 2 && verbatim.len() >= 127 {
-                    //println!(">>>>v_len: {}, si {:?}, sd: {:?}, v: {}, b: {}", verbatim.len(), short_identical_len, short_diff_len, val, byte);
+                    identical_len = 0;
+                    diff_len = 0;
+                } else if identical_len == 1 && diff_len > 2 && verbatim.len() >= 127 {
+                    //println!(">>>>v_len: {}, si {:?}, sd: {:?}, v: {}, b: {}", verbatim.len(), identical_len, diff_len, val, byte);
                     //println!("verbatim : {:?}", verbatim);
                     let new_verbatim = &verbatim[..verbatim.len() - 2];
                     // verbatim_len = p*256+q
@@ -719,44 +725,44 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
                     compress_data.extend_from_slice(&[head, p as u8, q as u8]);
                     compress_data.extend_from_slice(&new_verbatim);
                     verbatim = vec![val, val];
-                    short_identical_len = 2;
-                    short_diff_len = 0;
+                    identical_len = 2;
+                    diff_len = 0;
                     continue;
                 }
                 
-                if short_identical_len > 0 {
-                    short_diff_len = 0;
+                if identical_len > 0 {
+                    diff_len = 0;
                 }
                 verbatim.push(val);
-                short_identical_len += 1;
+                identical_len += 1;
                 continue;
             }
             //println!("ok b: {}, v: {}", byte, val);
-            short_diff_len += 1;
+            diff_len += 1;
         }
-        if count == 3 && short_identical_len + 2 == count {
-            compress_data.push(short_identical_len as u8);
+        if count == 3 && identical_len + 2 == count {
+            compress_data.push(identical_len as u8);
             compress_data.push(last_byte.unwrap());
             verbatim = vec![];
         }
 
-        //println!("&&&& diff -- i: {}, d: {}, v: {:?}", short_identical_len, short_diff_len, verbatim);
-        if short_identical_len > 1 && verbatim.len() < 127 {
-            compress_data.push(short_identical_len as u8);
+        //println!("&&&& diff -- i: {}, d: {}, v: {:?}", identical_len, diff_len, verbatim);
+        if identical_len > 1 && verbatim.len() < 127 {
+            compress_data.push(identical_len as u8);
             compress_data.push(last_byte.unwrap());
             verbatim = vec![];
-            //println!("boom si: {}, c: {:?}", short_identical_len, compress_data);
+            //println!("boom si: {}, c: {:?}", identical_len, compress_data);
         }
-        if short_identical_len > 1 && short_identical_len + 1 == verbatim.len() && verbatim.len() >= 127 {
+        if identical_len > 1 && identical_len + 1 == verbatim.len() && verbatim.len() >= 127 {
             // verbatim_len = p*256+q
             let p = verbatim.len() / 256;
-            let mut q = verbatim.len() % 256;
+            let q = verbatim.len() % 256;
             compress_data.extend_from_slice(&[127, p as u8, q as u8]);
             compress_data.extend_from_slice(&verbatim[0..1]);
             verbatim = vec![];
-            short_diff_len = 0;
+            diff_len = 0;
         }
-        short_identical_len = 0;
+        identical_len = 0;
         verbatim.push(*byte);
         last_byte = Some(*byte);
     }
@@ -767,8 +773,8 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
     if verbatim.len() == 1 {
         compress_data.push(0);
     }
-    else if short_identical_len > 0 && verbatim.len() >= 1 && verbatim.len() <= 126 {
-        if short_diff_len > 0 {
+    else if identical_len > 0 && verbatim.len() >= 1 && verbatim.len() <= 126 {
+        if diff_len > 0 {
             if verbatim.len() > 1 && verbatim[verbatim.len() - 1] == verbatim[verbatim.len() -2] {
                 compress_data.push((256 - verbatim.len() + 2) as u8);
                 compress_data.extend_from_slice(&verbatim[..verbatim.len() - 2]);
@@ -781,12 +787,12 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
             }
             verbatim = vec![];
         } else {
-            if short_identical_len < 2 && short_identical_len + 1 < verbatim.len() {
-                compress_data.push((256 - verbatim.len() - short_diff_len) as u8);
-                compress_data.extend_from_slice(&verbatim[..verbatim.len() - short_identical_len - 1]);
+            if identical_len < 2 && identical_len + 1 < verbatim.len() {
+                compress_data.push((256 - verbatim.len() - diff_len) as u8);
+                compress_data.extend_from_slice(&verbatim[..verbatim.len() - identical_len - 1]);
             }
-            //println!("coco -- i: {}, d: {}, v: {:?}", short_identical_len, short_diff_len, verbatim);
-            compress_data.push(short_identical_len as u8);
+            //println!("coco -- i: {}, d: {}, v: {:?}", identical_len, diff_len, verbatim);
+            compress_data.push(identical_len as u8);
             verbatim = vec![last_byte.unwrap()];
         }
     }
@@ -795,11 +801,14 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         let p = verbatim.len() / 256;
         let mut q = verbatim.len() % 256;
         let mut head = 128;
-        if short_identical_len > 1 {
+        if identical_len > 1 {
             head = 127;
-            if verbatim.len() != short_identical_len + 1 {
-                q = q - short_identical_len - 1;
-                verbatim = vec![short_identical_len as u8, last_byte.unwrap()];
+            if verbatim.len() != identical_len + 1 {
+                //println!(">>>q: {}, identical_len: {}, v: {:?}", q, identical_len, verbatim);
+                if identical_len < q {
+                    q = q - identical_len - 1;
+                }
+                verbatim = vec![identical_len as u8, last_byte.unwrap()];
             } else {
                 verbatim = vec![last_byte.unwrap()];
             }

@@ -8,3 +8,4 @@ pub mod property;
 pub mod rgba;
 pub mod version;
 pub mod xcf;
+pub mod tiles;
