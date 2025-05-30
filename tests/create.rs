@@ -509,7 +509,7 @@ fn write_minimal_9x9() -> Result<(), Error> {
     let xcf_file = create_file("minimal_9x9_pixels.xcf", &mut xcf)?;
     let file_hash = "a1ea8f2e9be410533cbfd81d0dc90835e064767f";
     assert_hash(xcf_file.1.to_str().expect(""), file_hash);
-    //assert_hash(xcf_file.2.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -553,7 +553,7 @@ fn write_minimal_9x15_diff_bytes() -> Result<(), Error> {
     let xcf_file = create_file("minimal_9x15_pixels.xcf", &mut xcf)?;
     let file_hash = "5538a716959ce0b366876e995bc08ae4fc070835";
     assert_hash(xcf_file.1.to_str().expect(""), file_hash);
-    //assert_hash(xcf_file.2.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -631,7 +631,7 @@ fn write_minimal_9x65_same_bytes() -> Result<(), Error> {
     let xcf_file = create_file("minimal_9x65_same_pixels.xcf", &mut xcf)?;
     let file_hash = "07f2c58bcc5f33a1bb40b36c307d2adac3f126a3";
     assert_hash(xcf_file.1.to_str().expect(""), file_hash);
-    //assert_hash(xcf_file.2.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -670,7 +670,7 @@ fn write_minimal_9x138_same_bytes() -> Result<(), Error> {
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_9x138_same_pixels.xcf", &mut xcf)?;
     assert_hash(xcf_file.1.to_str().expect(""), "2dae15bf4a97fdf6683de7ab69db0a083d6a320c");
-    //assert_hash(xcf_file.2.to_str().expect(""), "2dae15bf4a97fdf6683de7ab69db0a083d6a320c");
+    assert_hash(xcf_file.2.to_str().expect(""), "2dae15bf4a97fdf6683de7ab69db0a083d6a320c");
     Ok(())
 }
 
@@ -709,7 +709,7 @@ fn write_minimal_138x138_same_bytes() -> Result<(), Error> {
     let xcf_file = create_file("minimal_138x138_same_pixels.xcf", &mut xcf)?;
     let file_hash = "973793f80d32b8505913c3fdddefc803428faae1";
     assert_hash(xcf_file.1.to_str().expect(""), file_hash);
-    //assert_hash(xcf_file.2.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
@@ -793,7 +793,7 @@ fn write_minimal_12x12_diff_bytes() -> Result<(), Error> {
     let xcf_file = create_file("minimal_12x12_diff_pixels.xcf", &mut xcf)?;
     let file_hash = "5e64a49cf6d3c1557907c5d6aa482a50b99ab07b";
     assert_hash(xcf_file.1.to_str().expect(""), file_hash);
-    //assert_hash(xcf_file.2.to_str().expect(""), file_hash);
+    assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
 }
 
