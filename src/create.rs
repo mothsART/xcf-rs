@@ -624,8 +624,8 @@ impl XcfCreator {
                     }
 
                     let rle_r = rle_compress(&buffer_r);
-                    println!("buffer r : {:?}", buffer_r);
-                    println!("rle r : {:?}\n\n", rle_r);
+                    //println!("buffer r : {:?}", buffer_r);
+                    //println!("rle r : {:?}\n\n", rle_r);
                     tiles_body.extend(rle_r);
 
                     let rle_g = rle_compress(&buffer_g);
@@ -826,7 +826,6 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         }
 
         if i < data.len() - 2
-        && val_last_1 != val
         && val != val_1
         && val_1 == val_2
         && val_2 == val_3 {
@@ -851,15 +850,8 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
     if verbatim.len() > 3 {
         val_last_3 = verbatim[verbatim.len() - 4];
     }
-    let mut buffer= vec![];
+    let mut buffer;
 
-    //println!(
-    //    "val-2: {}, val-1: {}, val: {}, v_len: {}",
-    //    val_last_2,
-    //    val_last_1,
-    //    val,
-    //    verbatim.len()
-    //);
     if verbatim.len() >= 2 && val == val_last_1 && val_last_1 == val_last_2 {
         println!("1.");
         if data.len() == 1 {
@@ -879,8 +871,7 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         buffer.push(1);
         buffer.push(verbatim[verbatim.len() - 1]);
     } else {
-        println!("3. {:?} len {}", verbatim, verbatim.len());
-        //println!("3. c: {:?}, v: {:?}", compress_data, verbatim);
+        println!("3.");
         buffer = run_diff(&verbatim);
     }
 
