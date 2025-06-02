@@ -624,8 +624,8 @@ impl XcfCreator {
                     }
 
                     let rle_r = rle_compress(&buffer_r);
-                    //println!("buffer r : {:?}", buffer_r);
-                    //println!("rle r : {:?}\n\n", rle_r);
+                    println!("buffer r : {:?}", buffer_r);
+                    println!("rle r : {:?}\n\n", rle_r);
                     tiles_body.extend(rle_r);
 
                     let rle_g = rle_compress(&buffer_g);
@@ -677,149 +677,213 @@ impl XcfCreator {
     }
 }
 
+pub fn short_run_identical(verbatim: &[u8]) -> Vec<u8> {
+    println!("short run identical");
+    if verbatim.len() < 1 {
+        panic!("Wrong verbatim lengh : {}", verbatim.len());
+    }
+    vec![(verbatim.len() - 1) as u8, verbatim[0]]
+}
+
+pub fn long_run_identical(verbatim: &[u8]) -> Vec<u8> {
+    println!("long run identical");
+    if verbatim.len() < 127 {
+        panic!("Wrong verbatim lengh : {}", verbatim.len());
+    }
+    // verbatim_len = p*256+q
+    let p = verbatim.len() / 256;
+    let q = verbatim.len() % 256;
+    vec![127, p as u8, q as u8, verbatim[0]]
+}
+
+pub fn run_identical(verbatim: &[u8]) -> Vec<u8> {
+    if verbatim.len() > 126 {
+        return long_run_identical(&verbatim);
+    }
+    short_run_identical(&verbatim)
+}
+
+pub fn short_run_diff(verbatim: &[u8]) -> Vec<u8> {
+    println!("short run diff");
+    if verbatim.len() < 1 {
+        panic!("Wrong verbatim lengh : {}", verbatim.len());
+    }
+    let mut r = vec![(256 - verbatim.len()) as u8];
+    r.extend_from_slice(verbatim);
+    r
+}
+
+pub fn long_run_diff(verbatim: &[u8]) -> Vec<u8> {
+    println!("long run diff");
+    if verbatim.len() < 127 {
+        panic!("Wrong verbatim lengh : {}", verbatim.len());
+    }
+    // verbatim_len = p*256+q
+    let p = verbatim.len() / 256;
+    let q = verbatim.len() % 256;
+    let mut r = vec![128, p as u8, q as u8];
+    r.extend_from_slice(verbatim);
+    r
+}
+
+pub fn run_diff(verbatim: &[u8]) -> Vec<u8> {
+    if verbatim.len() > 126 {
+        return long_run_diff(&verbatim);
+    }
+    short_run_diff(&verbatim)
+}
+
+pub fn is_identiqual(values: &[u8]) -> bool {
+    if values.len() < 2 {
+        panic!("Wrong values lengh : {}", values.len());
+    }
+    let value = values[0];
+    for v in &values[1..values.len()] {
+        if value != *v {
+            return false;
+        }
+    }
+    return true;
+}
+
 // https://testing.developer.gimp.org/core/standards/xcf/#rle-compressed-tile-data
 pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
     let mut compress_data = vec![];
-    let mut last_byte = None;
-    let mut diff_len = 0;
-    let mut identical_len = 0;
-    let mut verbatim = vec![];
-    let mut count = 0;
+    let mut verbatim: Vec<u8> = vec![];
+    let mut i = 0;
     for byte in data {
-        count += 1;
-        //println!("recurrent -- i: {}, d: {}, v: {:?}", identical_len, diff_len, verbatim);
-        if let Some(val) = last_byte {
-            if *byte == val {
-                if identical_len > 0 && diff_len > 0 && verbatim.len() < 127 && verbatim.len() != 2 {
-                    if verbatim.len() == 4 {
-                        compress_data.push(1);
-                        compress_data.push(verbatim[0]);
-                        verbatim = vec![];
-                    } else {
-                        compress_data.push((256 - verbatim.len() + 2) as u8);
-                        compress_data.extend_from_slice(&verbatim[..verbatim.len()-2]);
-                        verbatim = vec![val, val];
-                    }
-                    identical_len = 1;
-                    diff_len = 0;
-                    //println!(">>>>c{:?}, v: {:?}, v: {}, b: {}", compress_data, verbatim, val, byte);
-                }
-                else if identical_len > 1 && diff_len > 0 && verbatim.len() >= 127 {
-                    // verbatim_len = p*256+q
-                    let p = verbatim.len() / 256;
-                    let q = verbatim.len() % 256;
-                    let head = 127;
-                    compress_data.extend_from_slice(&[head, p as u8, q as u8]);
-                    //compress_data.extend_from_slice(&vec![last_byte.unwrap()]);
-                    verbatim = vec![];
-                    identical_len = 0;
-                    diff_len = 0;
-                } else if identical_len == 1 && diff_len > 2 && verbatim.len() >= 127 {
-                    //println!(">>>>v_len: {}, si {:?}, sd: {:?}, v: {}, b: {}", verbatim.len(), identical_len, diff_len, val, byte);
-                    //println!("verbatim : {:?}", verbatim);
-                    let new_verbatim = &verbatim[..verbatim.len() - 2];
-                    // verbatim_len = p*256+q
-                    let p = new_verbatim.len() / 256;
-                    let q = new_verbatim.len() % 256;
-                    let head = 128;
-                    compress_data.extend_from_slice(&[head, p as u8, q as u8]);
-                    compress_data.extend_from_slice(&new_verbatim);
-                    verbatim = vec![val, val];
-                    identical_len = 2;
-                    diff_len = 0;
-                    continue;
-                }
-                
-                if identical_len > 0 {
-                    diff_len = 0;
-                }
-                verbatim.push(val);
-                identical_len += 1;
-                continue;
-            }
-            //println!("ok b: {}, v: {}", byte, val);
-            diff_len += 1;
-        }
-        if count == 3 && identical_len + 2 == count {
-            compress_data.push(identical_len as u8);
-            compress_data.push(last_byte.unwrap());
-            verbatim = vec![];
-        }
-
-        //println!("&&&& diff -- i: {}, d: {}, v: {:?}", identical_len, diff_len, verbatim);
-        if identical_len > 1 && verbatim.len() < 127 {
-            compress_data.push(identical_len as u8);
-            compress_data.push(last_byte.unwrap());
-            verbatim = vec![];
-            //println!("boom si: {}, c: {:?}", identical_len, compress_data);
-        }
-        if identical_len > 1 && identical_len + 1 == verbatim.len() && verbatim.len() >= 127 {
-            // verbatim_len = p*256+q
-            let p = verbatim.len() / 256;
-            let q = verbatim.len() % 256;
-            compress_data.extend_from_slice(&[127, p as u8, q as u8]);
-            compress_data.extend_from_slice(&verbatim[0..1]);
-            verbatim = vec![];
-            diff_len = 0;
-        }
-        identical_len = 0;
+        i += 1;
         verbatim.push(*byte);
-        last_byte = Some(*byte);
+
+        if i >= data.len() - 1 {
+            break;
+        }
+        let val = *byte;
+        let mut val_last_1 = val;
+        let mut val_last_2 = val;
+        if i > 1 {
+            val_last_1 = data[i - 2];
+        }
+        if i > 2 {
+            val_last_2 = data[i - 3];
+        }
+        let val_1 = data[i];
+        let val_2 = data[i + 1];
+        let mut val_3 = val_2;
+        if i < data.len() - 2 {
+            val_3 = data[i + 2];
+        }
+
+        //println!(
+        //    "i: {}, val-2: {}, val-1: {}, val: {}, val+1: {}, val+2: {}, val+3: {}, v_len: {}",
+        //    i,
+        //    val_last_2,
+        //    val_last_1,
+        //    val,
+        //    val_1,
+        //    val_2,
+        //    val_3,
+        //    verbatim.len()
+        //);
+        if i == 2
+        && val_last_1 == val
+        && val != val_1 {
+            let buffer = short_run_identical(&verbatim);
+            compress_data.extend_from_slice(&buffer);
+            verbatim = vec![];
+            continue;
+        }
+        if i == 1
+        && val != val_1
+        && val_1 == val_2
+        && val_2 == val_3 {
+            let buffer = run_diff(&verbatim);
+            compress_data.extend_from_slice(&buffer);
+            verbatim = vec![];
+            continue;
+        }
+        if i > 2
+        && val_last_2 == val_last_1
+        && val_last_1 == val
+        && val != val_1 {
+            println!("f 2: {:?}", verbatim);
+            let buffer = run_identical(&verbatim);
+            compress_data.extend_from_slice(&buffer);
+            verbatim = vec![];
+            continue;
+        }
+
+        if i > 4  && i < data.len() - 2
+           && is_identiqual(&vec![data[i - 3], data[i - 4], data[i - 5]])
+           && val_last_1 == val
+           && val != val_1
+        {
+            println!("f 3: {:?}", verbatim);
+            let buffer = run_identical(&verbatim);
+            compress_data.extend_from_slice(&buffer);
+            verbatim = vec![];
+            continue;
+        }
+
+        if i < data.len() - 2
+        && val_last_1 != val
+        && val != val_1
+        && val_1 == val_2
+        && val_2 == val_3 {
+            println!("f 4");
+            let buffer = run_diff(&verbatim);
+            compress_data.extend_from_slice(&buffer);
+            verbatim = vec![];
+            continue;
+        }
+    }
+    verbatim.push(data[data.len() - 1]);
+    let val = verbatim[verbatim.len() - 1];
+    let mut val_last_1 = val;
+    let mut val_last_2 = val;
+    let mut val_last_3 = val;
+    if verbatim.len() > 1 {
+        val_last_1 = verbatim[verbatim.len() - 2];
+    }
+    if verbatim.len() > 2 {
+        val_last_2 = verbatim[verbatim.len() - 3];
+    }
+    if verbatim.len() > 3 {
+        val_last_3 = verbatim[verbatim.len() - 4];
+    }
+    let mut buffer= vec![];
+
+    //println!(
+    //    "val-2: {}, val-1: {}, val: {}, v_len: {}",
+    //    val_last_2,
+    //    val_last_1,
+    //    val,
+    //    verbatim.len()
+    //);
+    if verbatim.len() >= 2 && val == val_last_1 && val_last_1 == val_last_2 {
+        println!("1.");
+        if data.len() == 1 {
+            buffer = vec![0, verbatim[0]];
+        } else {
+            buffer = run_identical(&verbatim);
+        }
+    } else if verbatim.len() >= 2 && val != val_last_1 && val_last_1 == val_last_2 && val_last_2 == val_last_3 {
+        println!("1.1");
+        buffer = run_identical(&verbatim[..verbatim.len() - 1]);
+        buffer.push(0);
+        buffer.push(val);
+    } else if verbatim.len() >= 2 && val == val_last_1 {
+        println!("2.");
+        //println!("2. c: {:?}, v: {:?}", compress_data, verbatim);
+        buffer = run_diff(&verbatim[..verbatim.len() - 2]);
+        buffer.push(1);
+        buffer.push(verbatim[verbatim.len() - 1]);
+    } else {
+        println!("3. {:?} len {}", verbatim, verbatim.len());
+        //println!("3. c: {:?}, v: {:?}", compress_data, verbatim);
+        buffer = run_diff(&verbatim);
     }
 
-    if verbatim.len() == 0 {
-        return compress_data;
-    }
-    if verbatim.len() == 1 {
-        compress_data.push(0);
-    }
-    else if identical_len > 0 && verbatim.len() >= 1 && verbatim.len() <= 126 {
-        if diff_len > 0 {
-            if verbatim.len() > 1 && verbatim[verbatim.len() - 1] == verbatim[verbatim.len() -2] {
-                compress_data.push((256 - verbatim.len() + 2) as u8);
-                compress_data.extend_from_slice(&verbatim[..verbatim.len() - 2]);
-                compress_data.push(1);
-                compress_data.push(verbatim[verbatim.len() - 1]);
-            }
-            else {
-                compress_data.push((256 - verbatim.len()) as u8);
-                compress_data.extend_from_slice(&verbatim);
-            }
-            verbatim = vec![];
-        } else {
-            if identical_len < 2 && identical_len + 1 < verbatim.len() {
-                compress_data.push((256 - verbatim.len() - diff_len) as u8);
-                compress_data.extend_from_slice(&verbatim[..verbatim.len() - identical_len - 1]);
-            }
-            //println!("coco -- i: {}, d: {}, v: {:?}", identical_len, diff_len, verbatim);
-            compress_data.push(identical_len as u8);
-            verbatim = vec![last_byte.unwrap()];
-        }
-    }
-    else if verbatim.len() >= 128 {
-        // verbatim_len = p*256+q
-        let p = verbatim.len() / 256;
-        let mut q = verbatim.len() % 256;
-        let mut head = 128;
-        if identical_len > 1 {
-            head = 127;
-            if verbatim.len() != identical_len + 1 {
-                //println!(">>>q: {}, identical_len: {}, v: {:?}", q, identical_len, verbatim);
-                if identical_len < q {
-                    q = q - identical_len - 1;
-                } else {
-                    q = q + 2;
-                }
-                verbatim = vec![last_byte.unwrap()];
-            } else {
-                verbatim = vec![last_byte.unwrap()];
-            }
-        }
-        compress_data.extend_from_slice(&[head, p as u8, q as u8]);
-    }
-    else {
-        compress_data.push((256 - verbatim.len()) as u8);
-    }
-    compress_data.extend_from_slice(&verbatim);
+    compress_data.extend_from_slice(&buffer);
     compress_data
 }

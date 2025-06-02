@@ -78,7 +78,7 @@ fn write_minimal_xcf10() -> Result<(), Error> {
 }
 
 #[test]
-fn write_minimal_xcf11() -> Result<(), Error> {
+fn write_minimal_xcf11_without_properties() -> Result<(), Error> {
     let mut xcf = XcfCreator::new(11, 1, 1, ColorType::Rgb);
     xcf.add_properties(&vec![]);
 
@@ -791,7 +791,7 @@ fn write_minimal_12x12_diff_bytes() -> Result<(), Error> {
     layers.push(layer_two);
     xcf.add_layers(&layers);
     let xcf_file = create_file("minimal_12x12_diff_pixels.xcf", &mut xcf)?;
-    let file_hash = "5e64a49cf6d3c1557907c5d6aa482a50b99ab07b";
+    let file_hash = "b9d98ffc83ebc93d48fba8bb04c7cbedc317470b";
     assert_hash(xcf_file.1.to_str().expect(""), file_hash);
     assert_hash(xcf_file.2.to_str().expect(""), file_hash);
     Ok(())
