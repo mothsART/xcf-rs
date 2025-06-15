@@ -1,66 +1,65 @@
-use xcf_rs::create::rle_compress;
+use xcf_rs::rle::rle_decompress;
 
 #[test]
-fn rle_compression_four_pixels() {
+fn rle_decompression_four_pixels() {
     assert_eq!(
-        rle_compress(&vec![158]),
-        vec![0, 158]
-    );
-
-    assert_eq!(
-        rle_compress(&vec!(222, 36, 36, 222)),
-        vec!(252, 222, 36, 36, 222)
+        rle_decompress(&vec![0, 158]),
+        vec![158]
     );
     assert_eq!(
-        rle_compress(&vec!(158, 0, 255, 43)),
-        vec!(252, 158, 0, 255, 43)
+        rle_decompress(&vec![252, 222, 36, 36, 222]),
+        vec![222, 36, 36, 222]
     );
     assert_eq!(
-        rle_compress(&vec!(0, 158, 5, 34)),
-        vec!(252, 0, 158, 5, 34)
+        rle_decompress(&vec![252, 158, 0, 255, 43]),
+        vec![158, 0, 255, 43]
+    );
+    assert_eq!(
+        rle_decompress(&vec![252, 0, 158, 5, 34]),
+        vec![0, 158, 5, 34]
     );
 }
 
 #[test]
-fn rle_compression_specif_four_pixels() {
+fn rle_decompression_specif_four_pixels() {
     assert_eq!(
-        rle_compress(&vec!(0, 0, 114, 121)),
-        vec!(1, 0, 254, 114, 121)
+        rle_decompress(&vec![1, 0, 254, 114, 121]),
+        vec![0, 0, 114, 121]
     );
 }
 
 #[test]
-fn rle_compression_other_specif_four_pixels() {
+fn rle_decompression_other_specif_four_pixels() {
     assert_eq!(
-        rle_compress(&vec![183, 209, 209]),
-        vec![255, 183, 1, 209]
+        rle_decompress(&vec![255, 183, 1, 209]),
+        vec![183, 209, 209]
     );
 }
 
 #[test]
-fn rle_compression_12_pixels() {
+fn rle_decompression_12_pixels() {
     assert_eq!(
-        rle_compress(&vec![
-            0, 54, 255, 255, 0, 54, 255, 255, 0, 54,
-            255, 255
-        ]),
-        vec![
+        rle_decompress(&vec![
             246, 0, 54, 255, 255, 0, 54, 255, 255, 0, 54,
             1, 255
+        ]),
+        vec![
+            0, 54, 255, 255, 0, 54, 255, 255, 0, 54,
+            255, 255
         ]
     );
     assert_eq!(
-        rle_compress(&vec![0, 201, 255, 0, 0, 201, 255, 0, 0, 201, 255, 0]),
-        vec![244, 0, 201, 255, 0, 0, 201, 255, 0, 0, 201, 255, 0]
+        rle_decompress(&vec![244, 0, 201, 255, 0, 0, 201, 255, 0, 0, 201, 255, 0]),
+        vec![0, 201, 255, 0, 0, 201, 255, 0, 0, 201, 255, 0]
     );
     assert_eq!(
-        rle_compress(&vec![0, 84, 255, 0, 0, 84, 255, 0, 0, 84, 255, 0]),
-        vec![244, 0, 84, 255, 0, 0, 84, 255, 0, 0, 84, 255, 0]
+        rle_decompress(&vec![244, 0, 84, 255, 0, 0, 84, 255, 0, 0, 84, 255, 0]),
+        vec![0, 84, 255, 0, 0, 84, 255, 0, 0, 84, 255, 0]
     );
 }
 
 #[test]
-fn rle_compression_12x12_pixels_one() {
+fn rle_decompression_12x12_pixels_one() {
     let mut raw = vec![];
     for _ in 0..18 {
         raw.extend_from_slice(&vec![0, 84, 255, 0, 0, 84, 255, 0]);
@@ -68,13 +67,13 @@ fn rle_compression_12x12_pixels_one() {
     let mut result = vec![128, 0, 144];
     result.extend_from_slice(&raw);
     assert_eq!(
-        rle_compress(&raw),
-        result
+        rle_decompress(&result),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_short_diff() {
+fn rle_decompression_short_diff() {
     let raw = vec![
         160, 160, 160, 160, 160,
         102, 102,
@@ -90,8 +89,7 @@ fn rle_compression_short_diff() {
         141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141
     ];
     assert_eq!(
-        rle_compress(&raw),
-        vec![
+        rle_decompress(&vec![
             4, 160,
             1, 102,
             3, 188,
@@ -104,12 +102,13 @@ fn rle_compression_short_diff() {
 
             252, 188, 46, 102, 102,
             24, 141
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_12x12_pixels_two() {
+fn rle_decompression_12x12_pixels_two() {
     let mut raw = vec![];
     for _ in 0..18 {
         raw.extend_from_slice(&vec![0, 201, 255, 0, 0, 201, 255, 0]);
@@ -117,20 +116,19 @@ fn rle_compression_12x12_pixels_two() {
     let mut result = vec![128, 0, 144];
     result.extend_from_slice(&raw);
     assert_eq!(
-        rle_compress(&raw),
-        result
+        rle_decompress(&result),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_12x12_pixels_three() {
+fn rle_decompression_12x12_pixels_three() {
     let mut raw = vec![];
     for _ in 0..18 {
         raw.extend_from_slice(&vec![0, 54, 255, 255, 0, 54, 255, 255]);
     }
     assert_eq!(
-        rle_compress(&raw),
-        vec![
+        rle_decompress(&vec![
             128, 0, 142,
 
             0, 54, 255, 255, 0, 54, 255, 255,
@@ -153,102 +151,97 @@ fn rle_compression_12x12_pixels_three() {
             0, 54, 255, 255, 0, 54,
 
             1, 255
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
 fn rle_compression_7x1_diff_pixels() {
     assert_eq!(
-        rle_compress(&vec![0, 0, 0, 54, 200, 200, 200]),
-        vec![2, 0, 255, 54, 2, 200]
+        rle_decompress(&vec![2, 0, 255, 54, 2, 200]),
+        vec![0, 0, 0, 54, 200, 200, 200]
     );
     assert_eq!(
-        rle_compress(&vec![0, 0, 0, 54, 255, 255, 255]),
-        vec![2, 0, 255, 54, 2, 255]
+        rle_decompress(&vec![2, 0, 255, 54, 2, 255]),
+        vec![0, 0, 0, 54, 255, 255, 255]
     );
     assert_eq!(
-        rle_compress(&vec![0, 0, 0, 201, 255, 255, 0]),
-        vec![2, 0, 252, 201, 255, 255, 0]
+        rle_decompress(&vec![2, 0, 252, 201, 255, 255, 0]),
+        vec![0, 0, 0, 201, 255, 255, 0]
     );
     assert_eq!(
-        rle_compress(&vec![0, 0, 0, 84, 255, 255, 0]),
-        vec![2, 0, 252, 84, 255, 255, 0]
-    );
-}
-
-#[test]
-fn rle_compression_nine_pixels() {
-    assert_eq!(
-        rle_compress(&vec!(222, 36, 36, 222, 36, 48, 0, 219, 0)),
-        vec!(247, 222, 36, 36, 222, 36, 48, 0, 219, 0)
+        rle_decompress(&vec![2, 0, 252, 84, 255, 255, 0]),
+        vec![0, 0, 0, 84, 255, 255, 0]
     );
 }
 
 #[test]
-fn rle_compression_9x3_pixels() {
+fn rle_decompression_nine_pixels() {
     assert_eq!(
-        rle_compress(&vec![
-                  158, 130, 222, 158, 130, 222, 158, 130, 222, 36, 222, 5, 36, 222, 5, 36, 222, 5, 0, 136, 248, 0, 136, 248, 0, 136, 248]),
-        vec![229, 158, 130, 222, 158, 130, 222, 158, 130, 222, 36, 222, 5, 36, 222, 5, 36, 222, 5, 0, 136, 248, 0, 136, 248, 0, 136, 248]
+        rle_decompress(&vec![247, 222, 36, 36, 222, 36, 48, 0, 219, 0]),
+        vec![222, 36, 36, 222, 36, 48, 0, 219, 0]
+    );
+}
+
+#[test]
+fn rle_decompression_9x3_pixels() {
+    assert_eq!(
+        rle_decompress(
+            &vec![229, 158, 130, 222, 158, 130, 222, 158, 130, 222, 36, 222, 5, 36, 222, 5, 36, 222, 5, 0, 136, 248, 0, 136, 248, 0, 136, 248]
+        ),
+        vec![
+                       158, 130, 222, 158, 130, 222, 158, 130, 222, 36, 222, 5, 36, 222, 5, 36, 222, 5, 0, 136, 248, 0, 136, 248, 0, 136, 248
+        ]
     );
 
     let raw = vec![
         222, 36, 36, 222, 36, 36, 222, 36, 36, 222, 36, 48, 222, 36, 48, 222, 36, 48, 0, 219, 0, 0, 219, 0, 0, 219, 0
     ];
     assert_eq!(
-        rle_compress(&raw),
-        vec![
+        rle_decompress(&vec![
             229,
             222, 36, 36, 222, 36, 36, 222, 36, 36, 222, 36, 48, 222, 36, 48, 222, 36, 48, 0, 219, 0, 0, 219, 0, 0, 219, 0
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_9x9_pixels() {
+fn rle_decompression_9x9_pixels() {
     assert_eq!(
-        rle_compress(&vec![
-            158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130,
-            222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36,
-            222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,
-              0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136,
-            248
-        ]),
-        vec![
+        rle_decompress(&vec![
             175,
             158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130,
             222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36,
             222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,
               0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136,
             248            
-        ]
+        ]),
+        vec![
+            158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130,
+            222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36,
+            222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,
+              0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136,
+            248
+        ],
     );
 }
 
 #[test]
-fn rle_compression_9x1_same_pixels() {
+fn rle_decompression_9x1_same_pixels() {
     assert_eq!(
-        rle_compress(&vec![
+        rle_decompress(&vec![8, 36]),
+        vec![
             36, 36, 36, 36, 36, 36, 36, 36, 36
-        ]),
-        vec![8, 36]
+        ]
     );
 }
 
 #[test]
 fn rle_compression_9x15_pixels() {
     assert_eq!(
-        rle_compress(&vec![
-            158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130,
-            222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36,
-            222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,
-            0,   136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136,
-            248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158,
-            130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,
-             36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248
-        ]),
-        vec![
+        rle_decompress(&vec![
             128, 0, 135,
             158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130,
             222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36,
@@ -257,14 +250,24 @@ fn rle_compression_9x15_pixels() {
             248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158,
             130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,
              36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248
+        ]),
+        vec![
+            158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130,
+            222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36,
+            222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,
+            0,   136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136,
+            248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158,
+            130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248, 158, 130, 222,
+             36, 222,   5,   0, 136, 248, 158, 130, 222,  36, 222,   5,   0, 136, 248
         ]
     );
 }
 
 #[test]
-fn rle_compression_9x15_same_pixels() {
+fn rle_decompression_9x15_same_pixels() {
     assert_eq!(
-        rle_compress(&vec![
+        rle_decompress(&vec![127, 0, 135, 54]),
+        vec![
             54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
             54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
             54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
@@ -273,14 +276,12 @@ fn rle_compression_9x15_same_pixels() {
 
             54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
             54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54
-        ]),
-        vec![127, 0, 135, 54]
+        ]
     );
 }
 
-
 #[test]
-fn rle_compression_9x9_diff_pixels() {
+fn rle_decompression_9x9_diff_pixels() {
     let raw = vec![
         254, 254, 254,
         255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
@@ -289,14 +290,14 @@ fn rle_compression_9x9_diff_pixels() {
         255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255
     ];
     assert_eq!(
-        rle_compress(&raw),
-        vec![2, 254, 77, 255]
+        rle_decompress(&vec![2, 254, 77, 255]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_diff_chain_pixels() {
-    let raw = &vec![
+fn rle_decompression_diff_chain_pixels() {
+    let raw = vec![
         157, 160, 181, 203, 172, 161, 172, 182, 187, 158,
         165, 157, 158, 167, 156, 164, 156, 159, 184, 189,
         176, 184, 160, 182, 201, 195, 161, 158, 163, 160,
@@ -321,10 +322,8 @@ fn rle_compression_diff_chain_pixels() {
 
         156, 156, 156, 156, 156, 156, 156,
     ];
-    println!("raw len : {}", raw.len());
     assert_eq!(
-        rle_compress(raw),
-        vec![
+        rle_decompress(&vec![
             128, 0, 204,
 
             157, 160, 181, 203, 172, 161, 172, 182, 187, 158,
@@ -350,13 +349,14 @@ fn rle_compression_diff_chain_pixels() {
             163, 176, 165, 193,
 
             6, 156,
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_diff_pixels() {
-    let raw = &vec![
+fn rle_decompression_diff_pixels() {
+    let raw = vec![
         254, 254, 254,
 
         255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
@@ -380,34 +380,34 @@ fn rle_compression_diff_pixels() {
         254, 254, 254
     ];
     assert_eq!(
-        rle_compress(raw),
-        vec![
+        rle_decompress(&vec![
             2, 254,
             127, 1, 44, 255,
             2, 254
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_diff2_pixels() {
+fn rle_decompression_diff2_pixels() {
     let mut raw = vec![254];
     for _ in 0..300 {
         raw.push(255);
     }
     raw.push(254);
     assert_eq!(
-        rle_compress(&raw),
-        vec![
+        rle_decompress(&vec![
             255, 254,
             127, 1, 44, 255,
             0, 254
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_iter_diff_pixels() {
+fn rle_decompression_iter_diff_pixels() {
     let mut raw = vec![200, 200, 200];
     let mut inc = 0;
     let mut nb_loop = 0;
@@ -420,10 +420,8 @@ fn rle_compression_iter_diff_pixels() {
         }
     }
     raw.extend_from_slice(&vec![150, 150, 150]);
-    println!("raw_len : {:?}", raw.len());
     assert_eq!(
-        rle_compress(&raw),
-        vec![
+        rle_decompress(&vec![
             2, 200,
 
             128, 1, 44,
@@ -461,61 +459,47 @@ fn rle_compression_iter_diff_pixels() {
             91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
 
             2, 150
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_same_pixels_with_artifact() {
+fn rle_decompression_same_pixels_with_artifact() {
     let raw = vec![
         251, 251, 251, 251, 251, 251, 251, 251, 251, 251, 251,
         253, 253,
         251, 251, 251, 251, 251, 251, 251, 251, 251, 251, 251,
     ];
     assert_eq!(
-        rle_compress(&raw),
-        vec![
+        rle_decompress(&vec![
             10, 251,
             1, 253,
             10, 251
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_same_pixels() {
+fn rle_decompression_same_pixels() {
     let raw = vec![
         251, 251, 251, 251, 251, 251, 251, 251, 251, 251, 251,
         253, 253,
         251, 251, 251, 251, 251, 251, 251, 251, 251, 251, 251,
     ];
     assert_eq!(
-        rle_compress(&raw),
-        vec![
+        rle_decompress(&vec![
             10, 251,
             1, 253,
             10, 251
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_64x64_same_pixels() {
-    let mut raw = vec![];
-    let width = 64;
-    let height = 64;
-    let nb = width * height;
-    for _ in 0..nb {
-        raw.push(255);
-    }
-    assert_eq!(
-        rle_compress(&raw),
-        vec![127, 16, 0, 255]
-    );
-}
-
-#[test]
-fn rle_compression_64x64_diff_pixels() {
+fn rle_decompression_64x64_diff_pixels() {
     let mut raw = vec![];
     for _ in 0..424 {
         raw.push(255);
@@ -526,17 +510,17 @@ fn rle_compression_64x64_diff_pixels() {
         raw.push(255);
     }
     assert_eq!(
-        rle_compress(&raw),
-        vec![
+        rle_decompress(&vec![
             127, 1, 168, 255,
             1, 0,
             127, 14, 86, 255
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_long_run_diff_pixels() {
+fn rle_decompression_long_run_diff_pixels() {
     let mut raw = vec![];
     for _ in 0..128 {
         raw.push(255);
@@ -549,18 +533,18 @@ fn rle_compression_long_run_diff_pixels() {
     raw.push(222);
     raw.push(222);
     assert_eq!(
-        rle_compress(&raw),
-        vec![
+        rle_decompress(&vec![
             127, 0, 128, 255,
             1, 0,
             127, 0, 128, 44,
             1, 222
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_64x64_multi_diff_pixels() {
+fn rle_decompression_64x64_multi_diff_pixels() {
     let mut raw = vec![];
     for _ in 0..424 {
         raw.push(255);
@@ -573,18 +557,18 @@ fn rle_compression_64x64_multi_diff_pixels() {
     raw.push(0);
     raw.push(0);
     assert_eq!(
-        rle_compress(&raw),
-        vec![
+        rle_decompress(&vec![
             127, 1, 168, 255,
             1, 0,
             127, 14, 84, 255,
             1, 0
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_12x11_pixels() {
+fn rle_decompression_12x11_pixels() {
     let raw = vec![
         0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 255, 255,
         0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 255, 255,
@@ -597,8 +581,7 @@ fn rle_compression_12x11_pixels() {
         0, 54, 255, 255
     ];
     assert_eq!(
-        rle_compress(&raw),
-        vec![
+        rle_decompress(&vec![
             128, 0, 130,
             0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 255, 255,
             0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 255, 255,
@@ -610,12 +593,13 @@ fn rle_compression_12x11_pixels() {
             0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 255, 255, 0, 54, 255, 255,
             0, 54,
             01, 255
-        ]
+        ]),
+        raw
     );
 }
 
 #[test]
-fn rle_compression_512x512_pixels() {
+fn rle_decompression_512x512_pixels() {
     let raw = vec![
         100,  78,  53,  40,  38,  42,  16,  13,  16,  25,  31,  30,  25,  25,   0,  0, 116, 101,  72,  55,
         43,   32,  19,  10,   8,  19,  30,  33,  28,  27,   0,   0,  77,  96,  92, 71,  45,  29,  32,  13,
@@ -628,8 +612,7 @@ fn rle_compression_512x512_pixels() {
         23,   27,  20,   3,   0,   5,   0,  10,  35,  38,  18,   6,  11,  17,   0,  0
     ];
     assert_eq!(
-        rle_compress(&raw),
-        [
+        rle_decompress(&vec![
             194,
             
             100, 78, 53, 40, 38, 42, 16, 13, 16, 25, 31, 30, 25, 25, 0, 0, 116, 101, 72, 55, 43, 32, 19, 10,
@@ -638,6 +621,8 @@ fn rle_compression_512x512_pixels() {
             30, 32, 0, 0, 7, 0, 12, 52, 76, 75, 62, 29, 9, 11, 14, 18, 23, 33, 0, 0, 8, 6, 0, 2, 38, 81, 74, 50,
             18, 6, 13, 17, 18, 31, 0, 0, 8, 15, 4, 0, 1, 38, 77, 68, 33, 5, 10, 19, 18, 25, 0, 0, 13, 6, 2, 2, 0,
             0, 43, 67, 52, 17, 7, 13, 16, 22, 0, 0, 16, 11, 8, 6, 1, 0, 0, 40, 58, 34, 9, 5, 12, 23, 0, 0, 23, 27,
-            20, 3, 0, 5, 0, 10, 35, 38, 18, 6, 11, 17, 1, 0]
+            20, 3, 0, 5, 0, 10, 35, 38, 18, 6, 11, 17, 1, 0
+        ]),
+        raw
     );
 }

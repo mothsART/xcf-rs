@@ -23,6 +23,7 @@ use std::path::Path;
 pub mod create;
 pub mod data;
 pub mod parser;
+pub mod rle;
 
 use crate::data::{
     color::ColorType, error::Error, header::XcfHeader, layer::Layer, pixeldata::PixelData,
