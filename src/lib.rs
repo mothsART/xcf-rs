@@ -103,7 +103,7 @@ impl PropertyPayload {
 }
 
 impl Layer {
-    fn parse<R: Read + Seek>(mut rdr: R, version: Version) -> Result<Layer, Error> {
+    fn parse<R: Read +  Seek + std::fmt::Debug>(mut rdr: R, version: Version) -> Result<Layer, Error> {
         let width = rdr.read_u32::<BigEndian>()?;
         let height = rdr.read_u32::<BigEndian>()?;
         let kind = LayerColorType::new(rdr.read_u32::<BigEndian>()?)?;
@@ -216,7 +216,7 @@ impl TileCursor {
     }
 
     /// Feed the cursor a stream starting at the beginning of an XCF tile structure.
-    fn feed<R: Read>(&mut self, mut rdr: R, pixels: &mut [RgbaPixel]) -> Result<(), Error> {
+    fn feed<R: Read + Seek + std::fmt::Debug>(&mut self, mut rdr: R, pixels: &mut [RgbaPixel]) -> Result<(), Error> {
         let twidth = cmp::min(self.x + 64, self.width) - self.x;
         let theight = cmp::min(self.y + 64, self.height) - self.y;
         let base_offset = self.y * self.width + self.x;
@@ -291,7 +291,7 @@ impl Xcf {
     }
 
     /// Read an XCF file from a Reader.
-    pub fn load<R: Read + Seek>(mut rdr: R) -> Result<Xcf, Error> {
+    pub fn load<R: Read + Seek + std::fmt::Debug>(mut rdr: R) -> Result<Xcf, Error> {
         let header = XcfHeader::parse(&mut rdr)?;
 
         let mut layers = Vec::new();
@@ -338,7 +338,7 @@ impl Xcf {
 }
 
 impl XcfHeader {
-    fn parse<R: Read>(mut rdr: R) -> Result<XcfHeader, Error> {
+    fn parse<R: Read + std::fmt::Debug>(mut rdr: R) -> Result<XcfHeader, Error> {
         let mut magic = [0u8; 9];
         rdr.read_exact(&mut magic)?;
         if magic != *b"gimp xcf " {

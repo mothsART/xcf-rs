@@ -1,5 +1,5 @@
 pub fn short_run_len_identical(verbatim: &[u8]) -> Vec<u8> {
-    if verbatim.len() < 1 {
+    if verbatim.is_empty() {
         panic!("Wrong verbatim lengh : {}", verbatim.len());
     }
     vec![(verbatim.len() - 1) as u8, verbatim[0]]
@@ -17,13 +17,13 @@ pub fn long_run_identical(verbatim: &[u8]) -> Vec<u8> {
 
 pub fn run_identical(verbatim: &[u8]) -> Vec<u8> {
     if verbatim.len() > 126 {
-        return long_run_identical(&verbatim);
+        return long_run_identical(verbatim);
     }
-    short_run_len_identical(&verbatim)
+    short_run_len_identical(verbatim)
 }
 
 pub fn short_run_len_diff(verbatim: &[u8]) -> Vec<u8> {
-    if verbatim.len() < 1 {
+    if verbatim.is_empty() {
         panic!("Wrong verbatim lengh : {}", verbatim.len());
     }
     let mut r = vec![(256 - verbatim.len()) as u8];
@@ -45,9 +45,9 @@ pub fn long_run_diff(verbatim: &[u8]) -> Vec<u8> {
 
 pub fn run_diff(verbatim: &[u8]) -> Vec<u8> {
     if verbatim.len() > 126 {
-        return long_run_diff(&verbatim);
+        return long_run_diff(verbatim);
     }
-    short_run_len_diff(&verbatim)
+    short_run_len_diff(verbatim)
 }
 
 pub fn is_identiqual(values: &[u8]) -> bool {
@@ -60,7 +60,7 @@ pub fn is_identiqual(values: &[u8]) -> bool {
             return false;
         }
     }
-    return true;
+    true
 }
 
 // https://testing.developer.gimp.org/core/standards/xcf/#rle-compressed-tile-data
@@ -119,7 +119,7 @@ pub fn rle_compress(data: &Vec<u8>) -> Vec<u8> {
         }
 
         if i > 4  && i < data.len() - 2
-           && is_identiqual(&vec![data[i - 3], data[i - 4], data[i - 5]])
+           && is_identiqual(&[data[i - 3], data[i - 4], data[i - 5]])
            && val_last_1 == val
            && val != val_1
         {

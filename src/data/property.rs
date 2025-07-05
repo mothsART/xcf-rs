@@ -58,7 +58,7 @@ pub struct Property {
 impl Property {
     // TODO: GIMP usually calculates sizes based on data and goes from that instead of the reported
     // property length... (for known properties)
-    fn guess_size(&self) -> usize {
+    fn _guess_size(&self) -> usize {
         match self.payload {
             PropertyPayload::ColorMap { colors, .. } => {
                 /* apparently due to a GIMP bug sometimes self.length will be n + 4 */

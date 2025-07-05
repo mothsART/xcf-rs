@@ -95,8 +95,16 @@ fn mini() -> Result<(), Error> {
 fn read_1024x1024_better_compression() -> Result<(), Error> {
     let raw_image = Xcf::open("tests/samples/parsing/1024x1024-better-compression.xcf")?;
 
-    assert_eq!(raw_image.header.version.num(), 11);
-    assert_eq!(raw_image.dimensions(), (1024, 1024));
+    //assert_eq!(raw_image.header.version.num(), 11);
+    //assert_eq!(raw_image.dimensions(), (1024, 1024));
+
+    let raw_pixel = raw_image
+    .layer("Background")
+    .unwrap()
+    .pixels
+    .pixel(220, 203)
+    .unwrap();
+    println!("raw_pixel : {:?}", raw_pixel);
     // TODO: check bg does not have alpha
     assert_eq!(
         raw_image

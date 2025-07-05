@@ -9,13 +9,13 @@ use crate::data::version::Version;
 use crate::TileCursor;
 
 pub trait ParseVersion {
-    fn parse<R: Read>(rdr: R) -> Result<Self, Error>
+    fn parse<R: Read + std::fmt::Debug>(rdr: R) -> Result<Self, Error>
     where
         Self: Sized;
 }
 
 impl ParseVersion for Version {
-    fn parse<R: Read>(mut rdr: R) -> Result<Self, Error> {
+    fn parse<R: Read + std::fmt::Debug>(mut rdr: R) -> Result<Self, Error> {
         let mut v = [0; 4];
         rdr.read_exact(&mut v)?;
         match &v {
@@ -33,7 +33,7 @@ impl ParseVersion for Version {
 impl PixelData {
     /// Parses the (silly?) hierarchy structure in the xcf file into a pixel array
     /// Makes lots of assumptions! Only supports RGBA for now.
-    pub fn parse_hierarchy<R: Read + Seek>(
+    pub fn parse_hierarchy<R: Read + Seek + std::fmt::Debug>(
         mut rdr: R,
         version: Version,
     ) -> Result<PixelData, Error> {

@@ -5,7 +5,6 @@ use std::path::PathBuf;
 use byteorder::{BigEndian, ByteOrder};
 
 extern crate hex_slice;
-use hex_slice::AsHex;
 
 use crate::data::color::ColorType;
 use crate::data::layer::Layer;
@@ -53,12 +52,12 @@ impl XcfCreator {
         let size = 8;
         let mut width_buf = vec![0; size];
         BigEndian::write_u64(&mut width_buf, value);
-        data.extend_from_slice(&mut width_buf);
+        data.extend_from_slice(&width_buf);
         *index += size as u32;
     }
 
     fn create_signature(&mut self, gimp_version: u16) {
-        let mut signature = format!("gimp xcf v{:03}\0", gimp_version);
+        let mut signature = format!("gimp xcf v{gimp_version:03}\0");
         if gimp_version == 1 {
             signature = "gimp xcf file\0".to_string();
         }
@@ -568,10 +567,7 @@ impl XcfCreator {
                 let nb_of_pixels = layer.pixels.pixels.iter().len() as u32;
                 let nb_pixels_of_layers = layer.pixels.width * layer.pixels.height;
                 if nb_pixels_of_layers != nb_of_pixels {
-                    panic!(
-                        "Number of pixels on the layers {} and pixels {} aren't equals",
-                        nb_pixels_of_layers, nb_of_pixels
-                    );
+                    panic!("Number of pixels on the layers {nb_pixels_of_layers} and pixels {nb_of_pixels} aren't equals");
                 }
 
                 //let tile_pointer_size = 8 * nb_of_tiles + 4;
@@ -672,7 +668,7 @@ impl XcfCreator {
     }
 
     pub fn save(&mut self, path: &PathBuf) -> Result<File, crate::Error> {
-        let mut new_file = File::create(&path)?;
+        let mut new_file = File::create(path)?;
         new_file.write_all(self.data.as_slice())?;
         Ok(new_file)
     }
