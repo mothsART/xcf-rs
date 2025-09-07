@@ -1,6 +1,6 @@
 # XCF File Reader
 
-[![Latest Version](https://img.shields.io/crates/v/xcf.svg)](https://crates.io/crates/xcf)
+[![Latest Version](https://img.shields.io/crates/v/xcf-rs.svg)](https://crates.io/crates/xcf-rs)
 
 Designed for extracting layer and pixel data from XCF files. 
 
